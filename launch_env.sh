@@ -19,4 +19,6 @@ if [ -z "$AGNOS_VERSION" ]; then
   export AGNOS_VERSION="15.1"
 fi
 
+
+export FINGERPRINT="FORD_MUSTANG_MACH_E_MK1"
 export STAGING_ROOT="/data/safe_staging"
