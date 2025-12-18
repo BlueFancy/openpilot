@@ -99,6 +99,7 @@ class CarController(CarControllerBase):
     # Variables to initialize (these get updated every scan as part of the control code)
     self.precision_type = 1  # precise or comfort
     self.human_turn = False  # have we detected a human override in a turn
+    self.enable_human_turn_detection = True  # enable human turn detection (can be updated from UI)
     self.enable_lane_positioning = False # Updated from UI: enable Advanced Lane Positioning
     self.enable_high_curvature_mode = False # Updated from UI: enable High Curvature Mode
     self.custom_profile = 0 # updated from UI
@@ -106,6 +107,7 @@ class CarController(CarControllerBase):
     self.steer_warning = False # warning for steering limits exceeded
     self.steer_warning_count = 0 # count how many cycles the warning has existed
     self.steering_limited = 0 # count how many cycles the steering was limited
+    self.lane_change = False  # track if lane change is active
 
     # Curvature variables
     self.curvature_lookup_time = 0.42 #from lagd
@@ -495,7 +497,7 @@ class CarController(CarControllerBase):
           self.human_turn = False
 
         # get path offset from model.position.y
-        if self.model is not None:
+        if self.model is not None and len(self.model.position.y) > 0 and len(self.model.laneLines) >= 3 and len(self.model.laneLineProbs) >= 3:
           path_offset_position = interp(self.path_offset_lookup_time, ModelConstants.T_IDXS, self.model.position.y)
 
           # now get path offset from lanelines
