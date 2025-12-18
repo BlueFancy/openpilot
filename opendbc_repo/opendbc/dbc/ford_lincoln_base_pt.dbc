@@ -1970,7 +1970,8 @@ BO_ 118 BrakeSnData_5: 8 ABS_ESC
  SG_ DrvSte_Tq_Rq : 31|8@0+ (0.0625,-8) [-8|7.8125] "Nm"  PSCM,GWM
  SG_ EmgcyBrkLamp_D_Rq : 21|2@0+ (1,0) [0|3] "SED"  GWM
  SG_ StopLamp_B_RqBrk : 7|1@0+ (1,0) [0|1] "SED"  GWM
-
+ SG_ SteWhlRelInit_An_Sns : 6|15@0+ (0.1,-1600) [-1600|1676.5] "deg"  PSCM,GWM
+ 
 BO_ 73 Global_PATS_SubTarget: 8 ABS_ESC
  SG_ immoSubTarget1Data_T1 : 15|40@0+ (1,0) [0|1099511627775] "Encrypted"  ECM_Diesel,GWM,PCM,PCM_HEV
  SG_ immoSubTarget1Cmd_T1 : 7|3@0+ (1,0) [0|7] "SED"  ECM_Diesel,GWM,PCM,PCM_HEV
