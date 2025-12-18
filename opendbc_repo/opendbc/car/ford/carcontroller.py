@@ -513,7 +513,11 @@ class CarController(CarControllerBase):
           path_offset = 0
 
         # Use the UI variable for adjustable Gain and set the PID gain to a fixed number, UI variable divided by 100 to make UI variable more closely match the 2.1 logic tuning.
-        path_offset_error = (path_offset * (self.LC_PID_gain_UI/100))
+        # 【优化】提高路径偏移误差灵敏度，增强避让反应速度
+        # 原值：path_offset * (LC_PID_gain_UI/100)
+        # 新值：path_offset * (LC_PID_gain_UI/100) * 1.5 - 提高50%灵敏度
+        # 效果：对障碍物的避让反应更灵敏，可以更快地响应路径偏移
+        path_offset_error = (path_offset * (self.LC_PID_gain_UI/100) * 1.5)
 
         # determine speed factor
         LC_PID_speed_factor = interp(CS.out.vEgoRaw, self.LC_PID_speed_bp, self.LC_PID_speed_v)
@@ -599,8 +603,16 @@ class CarController(CarControllerBase):
         path_angle = clip(path_angle, -self.path_angle_max, self.path_angle_max)
 
 
-        # if path_offset and path_angle disagree, it can result in a very uncomortable ride, since path_angle is so strong, zero out path_offset signal before it is sent over canbus
-        path_offset = 0.0
+        # 【优化】允许小范围路径偏移用于长弯道校正，提高过弯精度
+        # 原逻辑：强制设置 path_offset = 0.0（完全禁用路径偏移）
+        # 新逻辑：允许 ±20cm 的路径偏移用于校正，只有在强烈冲突时才清零
+        # 冲突判断：path_offset > 0.3m 且 path_angle > 0.1 且两者符号相反
+        # 效果：在长弯道中允许小范围路径校正，提高过弯精度，减少偏移
+        if abs(path_offset) > 0.3 and abs(path_angle) > 0.1 and (path_offset * path_angle < 0):
+          # 如果 path_offset 和 path_angle 强烈冲突（符号相反且都很大），清零 path_offset
+          path_offset = 0.0
+        # 否则，允许小范围路径偏移用于校正（限制在 ±20cm）
+        path_offset = clip(path_offset, -0.2, 0.2)  # 允许最多 20cm 的偏移用于校正
 
         # Determine if a human is making a turn and trap the value
         # if a human turn is active, reset steering to prevent windup
@@ -688,6 +700,48 @@ class CarController(CarControllerBase):
         # The stock system has been seen rate limiting the brake accel to 5 m/s^3,
         # however even 3.5 m/s^3 causes some overshoot with a step response.
         accel = max(accel, self.accel - (3.5 * CarControllerParams.ACC_CONTROL_STEP * DT_CTRL))
+
+        # 【优化】弯道提前减速预判：使用预测曲率提前1-2秒减速，避免在弯道中才开始减速
+        # 问题：原逻辑使用当前曲率，在高速（100 km/h）进入弯道时减速太晚，存在安全风险
+        # 方案：使用模型预测的1.0秒和2.0秒后的曲率来提前预判弯道
+        # 效果：在进入弯道前1-2秒开始减速，特别适用于高速进入弯道的情况
+        # 预测时间点：1.0秒（短期预测）和2.0秒（中期预测），使用两者中的最大值确保安全
+        if self.model is not None and len(self.model.orientation.x) >= 17:
+          # 获取1.0秒和2.0秒后的预测曲率
+          curvatures = np.array(self.model.orientationRate.z) / max(0.01, CS.out.vEgoRaw)
+          if len(curvatures) > 0 and len(ModelConstants.T_IDXS) > 0:
+            predicted_curvature_1s = interp(1.0, ModelConstants.T_IDXS, curvatures)
+            predicted_curvature_2s = interp(2.0, ModelConstants.T_IDXS, curvatures)
+            
+            # 使用未来2秒内的最大预测曲率以确保安全
+            max_predicted_curvature = max(abs(predicted_curvature_1s), abs(predicted_curvature_2s))
+            
+            # 根据预测曲率和当前速度计算所需的减速度
+            # 公式：横向加速度 a = v² × curvature（向心加速度）
+            # 目标：将横向加速度限制在 3.5 m/s² 以内，确保舒适和安全
+            v_ego_ms = CS.out.vEgoRaw
+            # 仅在速度 > 18 km/h 且预测曲率 > 0.003 时应用（只对显著弯道生效）
+            if v_ego_ms > 5.0 and max_predicted_curvature > 0.003:
+              # 计算所需的横向加速度
+              required_lat_accel = v_ego_ms * v_ego_ms * max_predicted_curvature
+              
+              # 目标横向加速度限制（舒适且安全）
+              max_lat_accel = 3.5  # m/s^2
+              
+              if required_lat_accel > max_lat_accel:
+                # 计算所需的目标速度：target_speed = √(max_lat_accel / curvature)
+                target_speed = math.sqrt(max_lat_accel / max_predicted_curvature) if max_predicted_curvature > 0 else v_ego_ms
+                
+                # 计算达到目标速度所需的减速度
+                # 使用2秒的预判时间来计算减速度
+                look_ahead_time = 2.0
+                speed_reduction_needed = max(0, v_ego_ms - target_speed)
+                curve_decel = speed_reduction_needed / look_ahead_time
+                
+                # 应用弯道减速度，但不超过最大减速度限制
+                # 混合策略：70% 来自曲线预测减速，30% 保留原始加速度请求，确保平滑过渡
+                curve_decel = min(curve_decel, 2.0)  # 限制减速度在 2.0 m/s² 以内
+                accel = accel * 0.3 + (accel - curve_decel) * 0.7
 
       accel = float(np.clip(accel, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX))
       gas = float(np.clip(gas, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX))
