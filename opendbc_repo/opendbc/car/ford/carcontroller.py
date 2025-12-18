@@ -383,10 +383,13 @@ class CarController(CarControllerBase):
           max_abs_predicted_curvature = max(np.abs(curvatures[:17]))  # max curvature magnitude over next 2.5s
         else:
           predicted_curvature = 0.0
+          predicted_steering_angle_curvature = 0.0
+          max_abs_predicted_curvature = 0.0
 
         # calculate predicted steering angle
         self.predictedSteeringAngleDeg_SP = math.degrees(self.VM.get_steer_from_curvature(-predicted_steering_angle_curvature, CS.out.vEgoRaw, 0))
-        self.predictedSteeringAngleDeg_SP += self.lp.angleOffsetDeg
+        if self.lp is not None:
+          self.predictedSteeringAngleDeg_SP += self.lp.angleOffsetDeg
 
         # calculate blend ratio
         self.pc_blend_ratio = interp(abs(desired_curvature), self.pc_blend_ratio_bp, self.pc_blend_ratio_v)
@@ -395,30 +398,34 @@ class CarController(CarControllerBase):
         requested_curvature = (predicted_curvature * self.pc_blend_ratio) + (desired_curvature * (1 - self.pc_blend_ratio))
 
         # determine if a lane change is active
-        if (self.model.meta.laneChangeState == 1 or self.model.meta.laneChangeState == 2 or self.model.meta.laneChangeState == 3):
+        if self.model is not None:
+          if (self.model.meta.laneChangeState == 1 or self.model.meta.laneChangeState == 2 or self.model.meta.laneChangeState == 3):
             self.lane_change = True
-        else:
+          else:
             self.lane_change = False
+        else:
+          self.lane_change = False
 
         # determine lane_change_factor based on speed
         lane_change_factor = interp(CS.out.vEgoRaw, self.lane_change_factor_bp, [self.lane_change_factor_low, self.lane_change_factor_high])
 
         # if changing lanes, modify curvature to smooth out the lane change
-        if self.lane_change and (self.model.meta.laneChangeDirection == 1): # if we are changing lanes to the left
-          if requested_curvature < 0: # and the curvature is taking us to the left
-              requested_curvature = requested_curvature * lane_change_factor # reduce the curvature to smooth out the lane change
-          else:
-              requested_curvature = requested_curvature # if we are moving back right to correct for over travel, do not reduce curvature
+        if self.lane_change and self.model is not None:
+          if (self.model.meta.laneChangeDirection == 1): # if we are changing lanes to the left
+            if requested_curvature < 0: # and the curvature is taking us to the left
+                requested_curvature = requested_curvature * lane_change_factor # reduce the curvature to smooth out the lane change
+            else:
+                requested_curvature = requested_curvature # if we are moving back right to correct for over travel, do not reduce curvature
 
-          self.precision_type = 0 # use comfort mode
+            self.precision_type = 0 # use comfort mode
 
-        if self.lane_change and (self.model.meta.laneChangeDirection == 2): # if we are changing lanes to the right
-          if requested_curvature > 0: # and the curvature is taking us to the right
-              requested_curvature = requested_curvature * lane_change_factor # reduce the curvature to smooth out the lane change
-          else:
-              requested_curvature = requested_curvature # if we are moving back left to correct for over travel, do not reduce curvature
+          if (self.model.meta.laneChangeDirection == 2): # if we are changing lanes to the right
+            if requested_curvature > 0: # and the curvature is taking us to the right
+                requested_curvature = requested_curvature * lane_change_factor # reduce the curvature to smooth out the lane change
+            else:
+                requested_curvature = requested_curvature # if we are moving back left to correct for over travel, do not reduce curvature
 
-          self.precision_type = 0 # use comfort mode
+            self.precision_type = 0 # use comfort mode
 
         # apply curvature limits
         apply_curvature = apply_ford_curvature_limits(requested_curvature,
@@ -488,25 +495,28 @@ class CarController(CarControllerBase):
           self.human_turn = False
 
         # get path offset from model.position.y
-        path_offset_position = interp(self.path_offset_lookup_time, ModelConstants.T_IDXS, self.model.position.y)
+        if self.model is not None:
+          path_offset_position = interp(self.path_offset_lookup_time, ModelConstants.T_IDXS, self.model.position.y)
 
-        # now get path offset from lanelines
-        path_offset_lanelines = (self.model.laneLines[1].y[0] + self.model.laneLines[2].y[0]) / 2
+          # now get path offset from lanelines
+          path_offset_lanelines = (self.model.laneLines[1].y[0] + self.model.laneLines[2].y[0]) / 2
 
-        # determinie laneline width tolerance scaling factor
-        laneline_width = self.model.laneLines[2].y[0] + (-self.model.laneLines[1].y[0]) # laneLines[1] is a negative value because it is left of the vehicle.
-        laneline_width_tolerance = interp(laneline_width, [3.75,4.25], [0.81, 0.59]) # 3.7 is the width of standard US lane in meters
+          # determinie laneline width tolerance scaling factor
+          laneline_width = self.model.laneLines[2].y[0] + (-self.model.laneLines[1].y[0]) # laneLines[1] is a negative value because it is left of the vehicle.
+          laneline_width_tolerance = interp(laneline_width, [3.75,4.25], [0.81, 0.59]) # 3.7 is the width of standard US lane in meters
 
-        # determine laneline confidence
-        laneline_confidence = min(self.model.laneLineProbs[1], self.model.laneLineProbs[2], laneline_width_tolerance)
-        if not self.enable_lanefull_mode:
-          laneline_confidence = 0.0
+          # determine laneline confidence
+          laneline_confidence = min(self.model.laneLineProbs[1], self.model.laneLineProbs[2], laneline_width_tolerance)
+          if not self.enable_lanefull_mode:
+            laneline_confidence = 0.0
 
-        # determine laneline path offset scale
-        laneline_path_offset_scale = interp(laneline_confidence, self.min_laneline_confidence_bp, [0.0, 1.0])
+          # determine laneline path offset scale
+          laneline_path_offset_scale = interp(laneline_confidence, self.min_laneline_confidence_bp, [0.0, 1.0])
 
-        # get the total path_offset combining model and lanelines
-        path_offset = (path_offset_position * (1-laneline_path_offset_scale) + (path_offset_lanelines * laneline_path_offset_scale)) + self.custom_path_offset
+          # get the total path_offset combining model and lanelines
+          path_offset = (path_offset_position * (1-laneline_path_offset_scale) + (path_offset_lanelines * laneline_path_offset_scale)) + self.custom_path_offset
+        else:
+          path_offset = 0.0
 
         # no path_offset during lane changes (it will fight you until it swaps to new lane if you don't set to zero)
         if self.lane_change:
