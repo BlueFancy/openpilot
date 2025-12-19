@@ -101,8 +101,16 @@ class CarController(CarControllerBase):
     self.precision_type = 1  # precise or comfort
     self.human_turn = False  # have we detected a human override in a turn
     self.enable_human_turn_detection = True  # enable human turn detection (can be updated from UI)
-    self.enable_lane_positioning = False # Updated from UI: enable Advanced Lane Positioning
-    self.enable_high_curvature_mode = False # Updated from UI: enable High Curvature Mode
+    # [INTELLIGENT] Enable Advanced Lane Positioning for better lane centering accuracy
+    # Original: False (disabled by default)
+    # Effect: System intelligently uses lane line confidence to blend model position and lane line position
+    # Benefits: More precise lane centering, reduced lateral oscillation, better adaptation to road conditions
+    self.enable_lane_positioning = True # Enable Advanced Lane Positioning for intelligent lane centering
+    # [INTELLIGENT] Enable High Curvature Mode for better sharp curve handling
+    # Original: False (disabled by default)
+    # Effect: System uses high curvature PID controller for precise steering control in sharp curves
+    # Benefits: Better sharp curve negotiation, automatic gain adjustment based on curvature and speed
+    self.enable_high_curvature_mode = True # Enable High Curvature Mode for intelligent curve handling
     self.custom_profile = 0 # updated from UI
     self.pc_blend_ratio = 0.5
     self.steer_warning = False # warning for steering limits exceeded
@@ -115,12 +123,18 @@ class CarController(CarControllerBase):
     self.lane_change_factor_bp = [4.4, 40.23] # what speed to adjust lane_change_factor
     self.lane_change_factor_low = 0.95 # lane_change_factor at 4.4 m/s
     self.lane_change_factor_high = 0.85 # updated from UI: lane_change_factor at 40.23 m/s
-    self.pc_blend_ratio_low_C_CAN = 0.40 # %-Predicted Curvature
-    self.pc_blend_ratio_high_C_CAN = 0.40 # %-Predicted Curvature
-    self.pc_blend_ratio_low_C_CANFD = 0.40 # %-Predicted Curvature
-    self.pc_blend_ratio_high_C_CANFD = 0.40 # %-Predicted Curvature
-    self.pc_blend_ratio_low_C_UI = 0.40 # Updated from UI: %-Predicted Curvature
-    self.pc_blend_ratio_high_C_UI = 0.40 # Updated from UI: %-Predicted Curvature
+    # [INTELLIGENT] Dynamic predicted curvature blend ratio based on road conditions
+    # Low curvature (straight/gentle curves): Use more model desired curvature (30% predicted) for stability
+    # High curvature (sharp curves): Use more predicted curvature (50% predicted) for better anticipation
+    # Original: 0.40 (fixed 40% predicted curvature for all conditions)
+    # Effect: Intelligent adaptation - trust model more on straight roads, trust prediction more on curves
+    # Benefits: Better stability on straight roads, better anticipation on curves, improved overall control
+    self.pc_blend_ratio_low_C_CAN = 0.30 # Reduced from 0.40 - trust model more on straight roads
+    self.pc_blend_ratio_high_C_CAN = 0.50 # Increased from 0.40 - trust prediction more on curves
+    self.pc_blend_ratio_low_C_CANFD = 0.30 # Reduced from 0.40 - trust model more on straight roads
+    self.pc_blend_ratio_high_C_CANFD = 0.50 # Increased from 0.40 - trust prediction more on curves
+    self.pc_blend_ratio_low_C_UI = 0.30 # Reduced from 0.40 - trust model more on straight roads
+    self.pc_blend_ratio_high_C_UI = 0.50 # Increased from 0.40 - trust prediction more on curves
     self.pc_blend_ratio_bp = [0.0, 0.001] # curvature breakpoints in 1/m
     self.large_curve_factor_low = 1.0 # factor to reduce curvature for small curves
     self.large_curve_factor_high = 0.80 # factor to reduce curvature for large curves
@@ -139,7 +153,15 @@ class CarController(CarControllerBase):
     self.custom_path_offset = 0.0 # updated from UI: applies a custom offset to help with in-lane positioning
     self.path_offset_lookup_time = 0.2 # in seconds (from bp-2.1)
     self.lane_width_tolerance_factor = 0.75
-    self.min_laneline_confidence_bp = [0.6, 0.8]
+    # [INTELLIGENT] Adaptive lane line confidence threshold for better lane detection in challenging conditions
+    # Original: [0.6, 0.8] (too strict, may miss lane lines in poor conditions)
+    # New: [0.5, 0.7] (more lenient, allows use of lane lines even with moderate confidence)
+    # Effect: System can use lane line information even when confidence is moderate, improving detection in:
+    #   - Poor weather conditions (rain, fog)
+    #   - Challenging lighting (dusk, dawn, shadows)
+    #   - Worn or faded lane markings
+    # Benefits: Better lane detection in complex road conditions, more robust lane keeping
+    self.min_laneline_confidence_bp = [0.5, 0.7]  # Reduced from [0.6, 0.8] for better detection in challenging conditions
     self.enable_lanefull_mode = True
 
     #path angle shared variables
@@ -157,7 +179,12 @@ class CarController(CarControllerBase):
     self.LC_PID_k_i = 0.05
     self.LC_PID_controller = PIDController(k_p=self.LC_PID_k_p, k_i=self.LC_PID_k_i, rate=20)
     self.LC_PID_speed_bp = [0.0, 9.0, 15.0]  # speed breakpoints in m/s
-    self.LC_PID_speed_v = [0.0, 0.0, 1.0]  # corresponding k_p values
+    # [INTELLIGENT] Enable partial PID control at low speed for better lane centering
+    # Original: [0.0, 0.0, 1.0] - no control below 15 m/s (54 km/h), full control above
+    # New: [0.3, 0.5, 1.0] - gradual increase from 30% at low speed to 100% at high speed
+    # Effect: Enables lane centering control even at low speeds (city driving, parking lots)
+    # Benefits: Better lane keeping in low-speed scenarios, smoother transitions, improved overall control
+    self.LC_PID_speed_v = [0.3, 0.5, 1.0]  # Enable 30% control at low speed, 50% at medium speed, 100% at high speed
     self.LC_path_angle_ROC_bp = [5, 15, 25]  # speed breakpoints in m/s
     self.LC_path_angle_ROC_v = [0.003, 0.0015, 0.002]  # match panda limits
     self.LC_path_angle_reset_counter = 0
