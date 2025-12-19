@@ -62,8 +62,9 @@ class CarState(CarStateBase, MadsCarState):
 
     if self.CP.flags & FordFlags.ALT_STEER_ANGLE:
       self.vehicle_sensors_valid = (
-        int((cp.vl["BrakeSnData_5"]["SteWhlRelInit_An_Sns"] + 1600) * 10) not in (32766, 32767)
-
+        int((cp.vl["ParkAid_Data"]["ExtSteeringAngleReq2"] + 1000) * 10) not in (32766, 32767)
+        and cp.vl["ParkAid_Data"]["EPASExtAngleStatReq"] == 0
+        and cp.vl["ParkAid_Data"]["ApaSys_D_Stat"] in (0, 1)
       )
     else:
    	  # Occasionally on startup, the ABS module recalibrates the steering pinion offset, so we need to block engagement
@@ -93,7 +94,7 @@ class CarState(CarStateBase, MadsCarState):
     if self.CP.flags & FordFlags.ALT_STEER_ANGLE:
       steering_angle_init = cp.vl["SteeringPinion_Data_Alt"]["StePinRelInit_An_Sns"]
       if self.vehicle_sensors_valid:
-        steering_angle_est = cp.vl["BrakeSnData_5"]["SteWhlRelInit_An_Sns"]
+        steering_angle_est = cp.vl["ParkAid_Data"]["ExtSteeringAngleReq2"]
         self.steering_angle_offset_deg = steering_angle_est - steering_angle_init
       ret.steeringAngleDeg = steering_angle_init + self.steering_angle_offset_deg
     else:
@@ -159,18 +160,7 @@ class CarState(CarStateBase, MadsCarState):
     # lock info
     ret.doorOpen = any([cp.vl["BodyInfo_3_FD1"]["DrStatDrv_B_Actl"], cp.vl["BodyInfo_3_FD1"]["DrStatPsngr_B_Actl"],
                         cp.vl["BodyInfo_3_FD1"]["DrStatRl_B_Actl"], cp.vl["BodyInfo_3_FD1"]["DrStatRr_B_Actl"]])
-    # [FIX] Add exception handling for seatbelt status to prevent false positives
-    # Problem: If CAN signal read fails or returns invalid value (3=Unknown), may cause false "Seatbelt Unlatched" error
-    # Solution: Only set seatbeltUnlatched=True when value is explicitly 2 (Unbelted), treat 3 (Unknown) as latched
-    # Effect: Prevents false seatbelt errors when signal is unavailable or unknown
-    # Benefits: System won't block control due to seatbelt signal issues
-    try:
-      seatbelt_status = cp.vl["RCMStatusMessage2_FD1"]["FirstRowBuckleDriver"]
-      # Only set unlatched if explicitly 2 (Unbelted), treat 0 (Faulty), 1 (Belted), 3 (Unknown) as latched
-      ret.seatbeltUnlatched = (seatbelt_status == 2)
-    except (KeyError, AttributeError):
-      # If signal read fails, assume latched to prevent blocking control
-      ret.seatbeltUnlatched = False
+    ret.seatbeltUnlatched = cp.vl["RCMStatusMessage2_FD1"]["FirstRowBuckleDriver"] == 2
 
     # blindspot sensors
     if self.CP.enableBsm:
@@ -305,7 +295,7 @@ class CarState(CarStateBase, MadsCarState):
     if CP.flags & FordFlags.ALT_STEER_ANGLE:
       pt_messages += [
         ("SteeringPinion_Data_Alt", 100),
-        ("BrakeSnData_5", 50),
+        ("ParkAid_Data", 50),
         ("TransGearData",10),
       ]
     else:
