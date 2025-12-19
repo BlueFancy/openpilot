@@ -183,6 +183,8 @@ class CarController(CarControllerBase):
     self.LC_PID_k_p = 0.18  # Reduced from 0.25 to prevent overcorrection
     self.LC_PID_k_i = 0.03  # Reduced from 0.05 to reduce integral windup
     self.LC_PID_controller = PIDController(k_p=self.LC_PID_k_p, k_i=self.LC_PID_k_i, rate=20)
+    # [DEBUG] Log PID parameter initialization
+    debug(f'[FIX] PID parameters initialized: k_p={self.LC_PID_k_p}, k_i={self.LC_PID_k_i}', True)
     self.LC_PID_speed_bp = [0.0, 9.0, 15.0]  # speed breakpoints in m/s
     # [INTELLIGENT] Enable partial PID control at low speed for better lane centering
     # Original: [0.0, 0.0, 1.0] - no control below 15 m/s (54 km/h), full control above
@@ -197,6 +199,8 @@ class CarController(CarControllerBase):
     # Effect: Faster path angle changes, quicker response to offsets
     # Benefits: System can correct offsets more quickly, improves responsiveness
     self.LC_path_angle_ROC_v = [0.004, 0.002, 0.0025]  # Increased by 30-33% for faster correction
+    # [DEBUG] Log path angle rate limit initialization
+    debug(f'[FIX] path_angle ROC limits initialized: bp={self.LC_path_angle_ROC_bp}, v={self.LC_path_angle_ROC_v}', True)
     self.LC_path_angle_reset_counter = 0
     self.LC_path_angle_reset_duration = 1.5 # in seconds
 
@@ -322,6 +326,9 @@ class CarController(CarControllerBase):
   def update(self, CC, CC_SP, CS, now_nanos):
     can_sends = []
     self.sm.update(0)
+    # [DEBUG] Log control state at start of update (only periodically to avoid spam)
+    if self.frame % 200 == 0:  # Log every 200 frames (~2 seconds at 100Hz)
+      debug(f'[DEBUG] Update frame={self.frame}: latActive={CC.latActive}, longActive={CC.longActive}, vEgo={CS.out.vEgoRaw:.2f}', True)
 
     if self.sm.updated['modelV2']:
       self.model = self.sm["modelV2"]
@@ -388,6 +395,9 @@ class CarController(CarControllerBase):
 
     # send steer msg at 20Hz
     if (self.frame % CarControllerParams.STEER_STEP) == 0:
+      # [DEBUG] Log lateral control activation state
+      if not CC.latActive and (self.frame % 100 == 0):  # Log when not active, periodically
+        debug(f'[DEBUG] Lateral control NOT active at frame={self.frame}', True)
       if CC.latActive:
         self.precision_type = 1
         steeringPressed = CS.out.steeringPressed
@@ -437,6 +447,9 @@ class CarController(CarControllerBase):
 
         # calculate blend ratio
         self.pc_blend_ratio = interp(abs(desired_curvature), self.pc_blend_ratio_bp, self.pc_blend_ratio_v)
+        # [DEBUG] Log blend ratio calculation (only when significant or periodically)
+        if abs(desired_curvature) > 0.001 or (self.frame % 200 == 0):  # Log significant curvature or every 200 frames
+          debug(f'[DEBUG] pc_blend_ratio: desired_curvature={desired_curvature:.4f}, blend_ratio={self.pc_blend_ratio:.3f}', True)
 
         # equate requested_curvature to a blend of desired and predicted_curvature and apply curvature limits
         requested_curvature = (predicted_curvature * self.pc_blend_ratio) + (desired_curvature * (1 - self.pc_blend_ratio))
@@ -573,6 +586,9 @@ class CarController(CarControllerBase):
         # Effect: Less aggressive correction, smoother steering, prevents snaking on curved roads
         # Benefits: Maintains correction ability while reducing overcorrection and oscillation
         path_offset_error = (path_offset * (self.LC_PID_gain_UI/100) * 1.2)
+        # [DEBUG] Log path offset error calculation (only when significant)
+        if abs(path_offset_error) > 0.01 or (self.frame % 100 == 0):  # Log significant errors or every 100 frames
+          debug(f'[FIX] path_offset_error: path_offset={path_offset:.3f}, error={path_offset_error:.3f}, gain_UI={self.LC_PID_gain_UI}', True)
 
         # determine speed factor
         LC_PID_speed_factor = interp(CS.out.vEgoRaw, self.LC_PID_speed_bp, self.LC_PID_speed_v)
@@ -663,12 +679,19 @@ class CarController(CarControllerBase):
         # Solution: Increase range to ±40cm, reduce conflict instead of zeroing, improve conflict threshold
         # Effect: Better correction capability for larger offsets, smoother conflict resolution
         # Benefits: Can correct offsets up to 40cm, maintains correction even when conflicting with path_angle
+        path_offset_before_conflict = path_offset
         if abs(path_offset) > 0.3 and abs(path_angle) > 0.15 and (path_offset * path_angle < 0):
           # If path_offset and path_angle strongly conflict, reduce path_offset by 50% instead of zeroing
           # This allows partial correction while avoiding strong conflict
           path_offset = path_offset * 0.5  # Reduce by 50% instead of zeroing
+          # [DEBUG] Log conflict resolution
+          debug(f'[FIX] path_offset conflict resolved: before={path_offset_before_conflict:.3f}, after={path_offset:.3f}, path_angle={path_angle:.3f}', True)
         # Increase allowed range to ±40cm for better correction capability
+        path_offset_before_clip = path_offset
         path_offset = clip(path_offset, -0.4, 0.4)  # Increased from ±20cm to ±40cm for better correction
+        # [DEBUG] Log path_offset clipping (only when clipped or significant)
+        if abs(path_offset_before_clip) > 0.4 or abs(path_offset) > 0.2 or (self.frame % 100 == 0):
+          debug(f'[FIX] path_offset: before_clip={path_offset_before_clip:.3f}, after_clip={path_offset:.3f}, range=±0.4m', True)
 
         # Determine if a human is making a turn and trap the value
         # if a human turn is active, reset steering to prevent windup
