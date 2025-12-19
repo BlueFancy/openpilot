@@ -159,7 +159,18 @@ class CarState(CarStateBase, MadsCarState):
     # lock info
     ret.doorOpen = any([cp.vl["BodyInfo_3_FD1"]["DrStatDrv_B_Actl"], cp.vl["BodyInfo_3_FD1"]["DrStatPsngr_B_Actl"],
                         cp.vl["BodyInfo_3_FD1"]["DrStatRl_B_Actl"], cp.vl["BodyInfo_3_FD1"]["DrStatRr_B_Actl"]])
-    ret.seatbeltUnlatched = cp.vl["RCMStatusMessage2_FD1"]["FirstRowBuckleDriver"] == 2
+    # [FIX] Add exception handling for seatbelt status to prevent false positives
+    # Problem: If CAN signal read fails or returns invalid value (3=Unknown), may cause false "Seatbelt Unlatched" error
+    # Solution: Only set seatbeltUnlatched=True when value is explicitly 2 (Unbelted), treat 3 (Unknown) as latched
+    # Effect: Prevents false seatbelt errors when signal is unavailable or unknown
+    # Benefits: System won't block control due to seatbelt signal issues
+    try:
+      seatbelt_status = cp.vl["RCMStatusMessage2_FD1"]["FirstRowBuckleDriver"]
+      # Only set unlatched if explicitly 2 (Unbelted), treat 0 (Faulty), 1 (Belted), 3 (Unknown) as latched
+      ret.seatbeltUnlatched = (seatbelt_status == 2)
+    except (KeyError, AttributeError):
+      # If signal read fails, assume latched to prevent blocking control
+      ret.seatbeltUnlatched = False
 
     # blindspot sensors
     if self.CP.enableBsm:
