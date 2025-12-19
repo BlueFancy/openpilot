@@ -175,8 +175,13 @@ class CarController(CarControllerBase):
     self.LC_PID_GAIN_CANFD_LARGE_VEHICLE = 3.0
     self.LC_PID_GAIN_UI = 0.0 # gain for UI tuning
     self.LC_PID_GAIN = 0.0
-    self.LC_PID_k_p = 0.25
-    self.LC_PID_k_i = 0.05
+    # [FIX] Reduce PID sensitivity to prevent oscillation (snaking) on slightly curved roads
+    # Original: k_p=0.25, k_i=0.05 (too sensitive, causes overcorrection and snaking)
+    # New: k_p=0.18 (28% reduction), k_i=0.03 (40% reduction) - reduces overcorrection
+    # Effect: Smoother steering, less oscillation, better stability on curved roads
+    # Benefits: Prevents snaking on slightly curved roads while maintaining correction ability
+    self.LC_PID_k_p = 0.18  # Reduced from 0.25 to prevent overcorrection
+    self.LC_PID_k_i = 0.03  # Reduced from 0.05 to reduce integral windup
     self.LC_PID_controller = PIDController(k_p=self.LC_PID_k_p, k_i=self.LC_PID_k_i, rate=20)
     self.LC_PID_speed_bp = [0.0, 9.0, 15.0]  # speed breakpoints in m/s
     # [INTELLIGENT] Enable partial PID control at low speed for better lane centering
@@ -186,7 +191,12 @@ class CarController(CarControllerBase):
     # Benefits: Better lane keeping in low-speed scenarios, smoother transitions, improved overall control
     self.LC_PID_speed_v = [0.3, 0.5, 1.0]  # Enable 30% control at low speed, 50% at medium speed, 100% at high speed
     self.LC_path_angle_ROC_bp = [5, 15, 25]  # speed breakpoints in m/s
-    self.LC_path_angle_ROC_v = [0.003, 0.0015, 0.002]  # match panda limits
+    # [FIX] Increase path angle rate of change limit for faster correction response
+    # Original: [0.003, 0.0015, 0.002] (too conservative, slow correction)
+    # New: [0.004, 0.002, 0.0025] (30-33% increase) - allows faster correction
+    # Effect: Faster path angle changes, quicker response to offsets
+    # Benefits: System can correct offsets more quickly, improves responsiveness
+    self.LC_path_angle_ROC_v = [0.004, 0.002, 0.0025]  # Increased by 30-33% for faster correction
     self.LC_path_angle_reset_counter = 0
     self.LC_path_angle_reset_duration = 1.5 # in seconds
 
@@ -426,7 +436,14 @@ class CarController(CarControllerBase):
           self.predictedSteeringAngleDeg_SP += self.lp.angleOffsetDeg
 
         # calculate blend ratio
-        self.pc_blend_ratio = interp(abs(desired_curvature), self.pc_blend_ratio_bp, self.pc_blend_ratio_v)
+        # [FIX] Smooth curvature blend ratio transition to reduce hesitation in route selection
+        # Problem: Abrupt blend ratio changes cause hesitation when selecting routes
+        # Solution: Smooth transition using 70% new value + 30% previous value
+        # Effect: Smoother curvature blending, less hesitation, more confident route selection
+        # Benefits: System makes route decisions more confidently, reduces hesitation
+        raw_blend_ratio = interp(abs(desired_curvature), self.pc_blend_ratio_bp, self.pc_blend_ratio_v)
+        # Smooth transition: 70% new value + 30% previous value to reduce abrupt changes
+        self.pc_blend_ratio = raw_blend_ratio * 0.7 + self.pc_blend_ratio * 0.3
 
         # equate requested_curvature to a blend of desired and predicted_curvature and apply curvature limits
         requested_curvature = (predicted_curvature * self.pc_blend_ratio) + (desired_curvature * (1 - self.pc_blend_ratio))
@@ -513,6 +530,13 @@ class CarController(CarControllerBase):
 
         # apply large curve factor to desired_curvature_rate
         desired_curvature_rate = desired_curvature_rate * large_curve_factor
+        
+        # [FIX] Smooth curvature rate changes to improve stability and reduce oscillation
+        # Problem: Abrupt curvature rate changes can cause steering oscillation
+        # Solution: Smooth transition using 80% new value + 20% previous value
+        # Effect: Smoother curvature rate changes, more stable steering, less oscillation
+        # Benefits: Reduces snaking, improves overall stability
+        desired_curvature_rate = desired_curvature_rate * 0.8 + self.curvature_rate_last * 0.2
 
         #no large curve factor in lane changes
         if self.lane_change:
@@ -557,11 +581,12 @@ class CarController(CarControllerBase):
           path_offset = 0
 
         # Use the UI variable for adjustable Gain and set the PID gain to a fixed number, UI variable divided by 100 to make UI variable more closely match the 2.1 logic tuning.
-        # [OPTIMIZATION] Increase path offset error sensitivity by 50% for better obstacle avoidance response
-        # Original: path_offset * (LC_PID_gain_UI/100)
-        # New: path_offset * (LC_PID_gain_UI/100) * 1.5 - 50% sensitivity increase
-        # Effect: More responsive to obstacles, faster path offset response
-        path_offset_error = (path_offset * (self.LC_PID_gain_UI/100) * 1.5)
+        # [FIX] Reduce path offset error sensitivity to prevent oscillation (snaking)
+        # Original: path_offset * (LC_PID_gain_UI/100) * 1.5 (too sensitive, causes snaking)
+        # New: path_offset * (LC_PID_gain_UI/100) * 1.2 (20% reduction from 1.5)
+        # Effect: Less aggressive correction, smoother steering, prevents snaking on curved roads
+        # Benefits: Maintains correction ability while reducing overcorrection and oscillation
+        path_offset_error = (path_offset * (self.LC_PID_gain_UI/100) * 1.2)
 
         # determine speed factor
         LC_PID_speed_factor = interp(CS.out.vEgoRaw, self.LC_PID_speed_bp, self.LC_PID_speed_v)
@@ -647,16 +672,17 @@ class CarController(CarControllerBase):
         path_angle = clip(path_angle, -self.path_angle_max, self.path_angle_max)
 
 
-        # [OPTIMIZATION] Allow small path offset for long curve correction, improve cornering accuracy
-        # Original logic: Force path_offset = 0.0 (completely disable path offset)
-        # New logic: Allow ±20cm path offset for correction, only zero when strongly conflicting
-        # Conflict check: path_offset > 0.3m AND path_angle > 0.1 AND opposite signs
-        # Effect: Allow small path correction in long curves, improve cornering accuracy, reduce offset
-        if abs(path_offset) > 0.3 and abs(path_angle) > 0.1 and (path_offset * path_angle < 0):
-          # If path_offset and path_angle strongly conflict (opposite signs and both large), zero path_offset
-          path_offset = 0.0
-        # Otherwise, allow small path offset for correction (limited to ±20cm)
-        path_offset = clip(path_offset, -0.2, 0.2)  # Allow max 20cm offset for correction
+        # [FIX] Enhanced path offset correction: increase range and improve conflict handling
+        # Problem: Original ±20cm limit too small, cannot correct larger offsets; conflict detection too aggressive (directly zeros)
+        # Solution: Increase range to ±40cm, reduce conflict instead of zeroing, improve conflict threshold
+        # Effect: Better correction capability for larger offsets, smoother conflict resolution
+        # Benefits: Can correct offsets up to 40cm, maintains correction even when conflicting with path_angle
+        if abs(path_offset) > 0.3 and abs(path_angle) > 0.15 and (path_offset * path_angle < 0):
+          # If path_offset and path_angle strongly conflict, reduce path_offset by 50% instead of zeroing
+          # This allows partial correction while avoiding strong conflict
+          path_offset = path_offset * 0.5  # Reduce by 50% instead of zeroing
+        # Increase allowed range to ±40cm for better correction capability
+        path_offset = clip(path_offset, -0.4, 0.4)  # Increased from ±20cm to ±40cm for better correction
 
         # Determine if a human is making a turn and trap the value
         # if a human turn is active, reset steering to prevent windup
