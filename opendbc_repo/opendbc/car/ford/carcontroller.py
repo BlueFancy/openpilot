@@ -436,14 +436,7 @@ class CarController(CarControllerBase):
           self.predictedSteeringAngleDeg_SP += self.lp.angleOffsetDeg
 
         # calculate blend ratio
-        # [FIX] Smooth curvature blend ratio transition to reduce hesitation in route selection
-        # Problem: Abrupt blend ratio changes cause hesitation when selecting routes
-        # Solution: Smooth transition using 70% new value + 30% previous value
-        # Effect: Smoother curvature blending, less hesitation, more confident route selection
-        # Benefits: System makes route decisions more confidently, reduces hesitation
-        raw_blend_ratio = interp(abs(desired_curvature), self.pc_blend_ratio_bp, self.pc_blend_ratio_v)
-        # Smooth transition: 70% new value + 30% previous value to reduce abrupt changes
-        self.pc_blend_ratio = raw_blend_ratio * 0.7 + self.pc_blend_ratio * 0.3
+        self.pc_blend_ratio = interp(abs(desired_curvature), self.pc_blend_ratio_bp, self.pc_blend_ratio_v)
 
         # equate requested_curvature to a blend of desired and predicted_curvature and apply curvature limits
         requested_curvature = (predicted_curvature * self.pc_blend_ratio) + (desired_curvature * (1 - self.pc_blend_ratio))
@@ -530,13 +523,6 @@ class CarController(CarControllerBase):
 
         # apply large curve factor to desired_curvature_rate
         desired_curvature_rate = desired_curvature_rate * large_curve_factor
-        
-        # [FIX] Smooth curvature rate changes to improve stability and reduce oscillation
-        # Problem: Abrupt curvature rate changes can cause steering oscillation
-        # Solution: Smooth transition using 80% new value + 20% previous value
-        # Effect: Smoother curvature rate changes, more stable steering, less oscillation
-        # Benefits: Reduces snaking, improves overall stability
-        desired_curvature_rate = desired_curvature_rate * 0.8 + self.curvature_rate_last * 0.2
 
         #no large curve factor in lane changes
         if self.lane_change:
