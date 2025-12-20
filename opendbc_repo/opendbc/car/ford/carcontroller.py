@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import math
 import cereal.messaging as messaging
 import numpy as np
@@ -100,41 +99,25 @@ class CarController(CarControllerBase):
     # Variables to initialize (these get updated every scan as part of the control code)
     self.precision_type = 1  # precise or comfort
     self.human_turn = False  # have we detected a human override in a turn
-    self.enable_human_turn_detection = True  # enable human turn detection (can be updated from UI)
-    # [INTELLIGENT] Enable Advanced Lane Positioning for better lane centering accuracy
-    # Original: False (disabled by default)
-    # Effect: System intelligently uses lane line confidence to blend model position and lane line position
-    # Benefits: More precise lane centering, reduced lateral oscillation, better adaptation to road conditions
-    self.enable_lane_positioning = True # Enable Advanced Lane Positioning for intelligent lane centering
-    # [INTELLIGENT] Enable High Curvature Mode for better sharp curve handling
-    # Original: False (disabled by default)
-    # Effect: System uses high curvature PID controller for precise steering control in sharp curves
-    # Benefits: Better sharp curve negotiation, automatic gain adjustment based on curvature and speed
-    self.enable_high_curvature_mode = True # Enable High Curvature Mode for intelligent curve handling
+    self.enable_lane_positioning = False # Updated from UI: enable Advanced Lane Positioning
+    self.enable_high_curvature_mode = False # Updated from UI: enable High Curvature Mode
     self.custom_profile = 0 # updated from UI
     self.pc_blend_ratio = 0.5
     self.steer_warning = False # warning for steering limits exceeded
     self.steer_warning_count = 0 # count how many cycles the warning has existed
     self.steering_limited = 0 # count how many cycles the steering was limited
-    self.lane_change = False  # track if lane change is active
 
     # Curvature variables
     self.curvature_lookup_time = 0.42 #from lagd
     self.lane_change_factor_bp = [4.4, 40.23] # what speed to adjust lane_change_factor
     self.lane_change_factor_low = 0.95 # lane_change_factor at 4.4 m/s
     self.lane_change_factor_high = 0.85 # updated from UI: lane_change_factor at 40.23 m/s
-    # [INTELLIGENT] Dynamic predicted curvature blend ratio based on road conditions
-    # Low curvature (straight/gentle curves): Use more model desired curvature (30% predicted) for stability
-    # High curvature (sharp curves): Use more predicted curvature (50% predicted) for better anticipation
-    # Original: 0.40 (fixed 40% predicted curvature for all conditions)
-    # Effect: Intelligent adaptation - trust model more on straight roads, trust prediction more on curves
-    # Benefits: Better stability on straight roads, better anticipation on curves, improved overall control
-    self.pc_blend_ratio_low_C_CAN = 0.30 # Reduced from 0.40 - trust model more on straight roads
-    self.pc_blend_ratio_high_C_CAN = 0.50 # Increased from 0.40 - trust prediction more on curves
-    self.pc_blend_ratio_low_C_CANFD = 0.30 # Reduced from 0.40 - trust model more on straight roads
-    self.pc_blend_ratio_high_C_CANFD = 0.50 # Increased from 0.40 - trust prediction more on curves
-    self.pc_blend_ratio_low_C_UI = 0.30 # Reduced from 0.40 - trust model more on straight roads
-    self.pc_blend_ratio_high_C_UI = 0.50 # Increased from 0.40 - trust prediction more on curves
+    self.pc_blend_ratio_low_C_CAN = 0.40 # %-Predicted Curvature
+    self.pc_blend_ratio_high_C_CAN = 0.40 # %-Predicted Curvature
+    self.pc_blend_ratio_low_C_CANFD = 0.40 # %-Predicted Curvature
+    self.pc_blend_ratio_high_C_CANFD = 0.40 # %-Predicted Curvature
+    self.pc_blend_ratio_low_C_UI = 0.40 # Updated from UI: %-Predicted Curvature
+    self.pc_blend_ratio_high_C_UI = 0.40 # Updated from UI: %-Predicted Curvature
     self.pc_blend_ratio_bp = [0.0, 0.001] # curvature breakpoints in 1/m
     self.large_curve_factor_low = 1.0 # factor to reduce curvature for small curves
     self.large_curve_factor_high = 0.80 # factor to reduce curvature for large curves
@@ -153,15 +136,7 @@ class CarController(CarControllerBase):
     self.custom_path_offset = 0.0 # updated from UI: applies a custom offset to help with in-lane positioning
     self.path_offset_lookup_time = 0.2 # in seconds (from bp-2.1)
     self.lane_width_tolerance_factor = 0.75
-    # [INTELLIGENT] Adaptive lane line confidence threshold for better lane detection in challenging conditions
-    # Original: [0.6, 0.8] (too strict, may miss lane lines in poor conditions)
-    # New: [0.5, 0.7] (more lenient, allows use of lane lines even with moderate confidence)
-    # Effect: System can use lane line information even when confidence is moderate, improving detection in:
-    #   - Poor weather conditions (rain, fog)
-    #   - Challenging lighting (dusk, dawn, shadows)
-    #   - Worn or faded lane markings
-    # Benefits: Better lane detection in complex road conditions, more robust lane keeping
-    self.min_laneline_confidence_bp = [0.5, 0.7]  # Reduced from [0.6, 0.8] for better detection in challenging conditions
+    self.min_laneline_confidence_bp = [0.6, 0.8]
     self.enable_lanefull_mode = True
 
     #path angle shared variables
@@ -179,12 +154,7 @@ class CarController(CarControllerBase):
     self.LC_PID_k_i = 0.05
     self.LC_PID_controller = PIDController(k_p=self.LC_PID_k_p, k_i=self.LC_PID_k_i, rate=20)
     self.LC_PID_speed_bp = [0.0, 9.0, 15.0]  # speed breakpoints in m/s
-    # [INTELLIGENT] Enable partial PID control at low speed for better lane centering
-    # Original: [0.0, 0.0, 1.0] - no control below 15 m/s (54 km/h), full control above
-    # New: [0.3, 0.5, 1.0] - gradual increase from 30% at low speed to 100% at high speed
-    # Effect: Enables lane centering control even at low speeds (city driving, parking lots)
-    # Benefits: Better lane keeping in low-speed scenarios, smoother transitions, improved overall control
-    self.LC_PID_speed_v = [0.3, 0.5, 1.0]  # Enable 30% control at low speed, 50% at medium speed, 100% at high speed
+    self.LC_PID_speed_v = [0.0, 0.0, 1.0]  # corresponding k_p values
     self.LC_path_angle_ROC_bp = [5, 15, 25]  # speed breakpoints in m/s
     self.LC_path_angle_ROC_v = [0.003, 0.0015, 0.002]  # match panda limits
     self.LC_path_angle_reset_counter = 0
@@ -205,11 +175,7 @@ class CarController(CarControllerBase):
     # max absolute values for all four signals
     self.path_angle_max = 0.5  # from dbc files
     self.path_offset_max = 2.0  # too much path offset causes issues
-    # [OPTIMIZATION] Synchronize with CURVATURE_MAX in values.py for consistency
-    # Original: 0.02 (hardcoded, not synchronized)
-    # New: Use CarControllerParams.CURVATURE_MAX (0.03) to ensure parameter optimization takes effect
-    # Effect: Ensures curvature limit in carcontroller matches the optimized value in values.py
-    self.curvature_max = CarControllerParams.CURVATURE_MAX  # Synchronized with values.py (0.03)
+    self.curvature_max = 0.02  # from dbc files
     self.curvature_rate_max = 0.001023  # from dbc files
 
     # values from previous frame
@@ -417,13 +383,10 @@ class CarController(CarControllerBase):
           max_abs_predicted_curvature = max(np.abs(curvatures[:17]))  # max curvature magnitude over next 2.5s
         else:
           predicted_curvature = 0.0
-          predicted_steering_angle_curvature = 0.0
-          max_abs_predicted_curvature = 0.0
 
         # calculate predicted steering angle
         self.predictedSteeringAngleDeg_SP = math.degrees(self.VM.get_steer_from_curvature(-predicted_steering_angle_curvature, CS.out.vEgoRaw, 0))
-        if self.lp is not None:
-          self.predictedSteeringAngleDeg_SP += self.lp.angleOffsetDeg
+        self.predictedSteeringAngleDeg_SP += self.lp.angleOffsetDeg
 
         # calculate blend ratio
         self.pc_blend_ratio = interp(abs(desired_curvature), self.pc_blend_ratio_bp, self.pc_blend_ratio_v)
@@ -432,34 +395,30 @@ class CarController(CarControllerBase):
         requested_curvature = (predicted_curvature * self.pc_blend_ratio) + (desired_curvature * (1 - self.pc_blend_ratio))
 
         # determine if a lane change is active
-        if self.model is not None:
-          if (self.model.meta.laneChangeState == 1 or self.model.meta.laneChangeState == 2 or self.model.meta.laneChangeState == 3):
+        if (self.model.meta.laneChangeState == 1 or self.model.meta.laneChangeState == 2 or self.model.meta.laneChangeState == 3):
             self.lane_change = True
-          else:
-            self.lane_change = False
         else:
-          self.lane_change = False
+            self.lane_change = False
 
         # determine lane_change_factor based on speed
         lane_change_factor = interp(CS.out.vEgoRaw, self.lane_change_factor_bp, [self.lane_change_factor_low, self.lane_change_factor_high])
 
         # if changing lanes, modify curvature to smooth out the lane change
-        if self.lane_change and self.model is not None:
-          if (self.model.meta.laneChangeDirection == 1): # if we are changing lanes to the left
-            if requested_curvature < 0: # and the curvature is taking us to the left
-                requested_curvature = requested_curvature * lane_change_factor # reduce the curvature to smooth out the lane change
-            else:
-                requested_curvature = requested_curvature # if we are moving back right to correct for over travel, do not reduce curvature
+        if self.lane_change and (self.model.meta.laneChangeDirection == 1): # if we are changing lanes to the left
+          if requested_curvature < 0: # and the curvature is taking us to the left
+              requested_curvature = requested_curvature * lane_change_factor # reduce the curvature to smooth out the lane change
+          else:
+              requested_curvature = requested_curvature # if we are moving back right to correct for over travel, do not reduce curvature
 
-            self.precision_type = 0 # use comfort mode
+          self.precision_type = 0 # use comfort mode
 
-          if (self.model.meta.laneChangeDirection == 2): # if we are changing lanes to the right
-            if requested_curvature > 0: # and the curvature is taking us to the right
-                requested_curvature = requested_curvature * lane_change_factor # reduce the curvature to smooth out the lane change
-            else:
-                requested_curvature = requested_curvature # if we are moving back left to correct for over travel, do not reduce curvature
+        if self.lane_change and (self.model.meta.laneChangeDirection == 2): # if we are changing lanes to the right
+          if requested_curvature > 0: # and the curvature is taking us to the right
+              requested_curvature = requested_curvature * lane_change_factor # reduce the curvature to smooth out the lane change
+          else:
+              requested_curvature = requested_curvature # if we are moving back left to correct for over travel, do not reduce curvature
 
-            self.precision_type = 0 # use comfort mode
+          self.precision_type = 0 # use comfort mode
 
         # apply curvature limits
         apply_curvature = apply_ford_curvature_limits(requested_curvature,
@@ -529,39 +488,32 @@ class CarController(CarControllerBase):
           self.human_turn = False
 
         # get path offset from model.position.y
-        if self.model is not None and len(self.model.position.y) > 0 and len(self.model.laneLines) >= 3 and len(self.model.laneLineProbs) >= 3:
-          path_offset_position = interp(self.path_offset_lookup_time, ModelConstants.T_IDXS, self.model.position.y)
+        path_offset_position = interp(self.path_offset_lookup_time, ModelConstants.T_IDXS, self.model.position.y)
 
-          # now get path offset from lanelines
-          path_offset_lanelines = (self.model.laneLines[1].y[0] + self.model.laneLines[2].y[0]) / 2
+        # now get path offset from lanelines
+        path_offset_lanelines = (self.model.laneLines[1].y[0] + self.model.laneLines[2].y[0]) / 2
 
-          # determinie laneline width tolerance scaling factor
-          laneline_width = self.model.laneLines[2].y[0] + (-self.model.laneLines[1].y[0]) # laneLines[1] is a negative value because it is left of the vehicle.
-          laneline_width_tolerance = interp(laneline_width, [3.75,4.25], [0.81, 0.59]) # 3.7 is the width of standard US lane in meters
+        # determinie laneline width tolerance scaling factor
+        laneline_width = self.model.laneLines[2].y[0] + (-self.model.laneLines[1].y[0]) # laneLines[1] is a negative value because it is left of the vehicle.
+        laneline_width_tolerance = interp(laneline_width, [3.75,4.25], [0.81, 0.59]) # 3.7 is the width of standard US lane in meters
 
-          # determine laneline confidence
-          laneline_confidence = min(self.model.laneLineProbs[1], self.model.laneLineProbs[2], laneline_width_tolerance)
-          if not self.enable_lanefull_mode:
-            laneline_confidence = 0.0
+        # determine laneline confidence
+        laneline_confidence = min(self.model.laneLineProbs[1], self.model.laneLineProbs[2], laneline_width_tolerance)
+        if not self.enable_lanefull_mode:
+          laneline_confidence = 0.0
 
-          # determine laneline path offset scale
-          laneline_path_offset_scale = interp(laneline_confidence, self.min_laneline_confidence_bp, [0.0, 1.0])
+        # determine laneline path offset scale
+        laneline_path_offset_scale = interp(laneline_confidence, self.min_laneline_confidence_bp, [0.0, 1.0])
 
-          # get the total path_offset combining model and lanelines
-          path_offset = (path_offset_position * (1-laneline_path_offset_scale) + (path_offset_lanelines * laneline_path_offset_scale)) + self.custom_path_offset
-        else:
-          path_offset = 0.0
+        # get the total path_offset combining model and lanelines
+        path_offset = (path_offset_position * (1-laneline_path_offset_scale) + (path_offset_lanelines * laneline_path_offset_scale)) + self.custom_path_offset
 
         # no path_offset during lane changes (it will fight you until it swaps to new lane if you don't set to zero)
         if self.lane_change:
           path_offset = 0
 
         # Use the UI variable for adjustable Gain and set the PID gain to a fixed number, UI variable divided by 100 to make UI variable more closely match the 2.1 logic tuning.
-        # [OPTIMIZATION] Increase path offset error sensitivity by 50% for better obstacle avoidance response
-        # Original: path_offset * (LC_PID_gain_UI/100)
-        # New: path_offset * (LC_PID_gain_UI/100) * 1.5 - 50% sensitivity increase
-        # Effect: More responsive to obstacles, faster path offset response
-        path_offset_error = (path_offset * (self.LC_PID_gain_UI/100) * 1.5)
+        path_offset_error = (path_offset * (self.LC_PID_gain_UI/100))
 
         # determine speed factor
         LC_PID_speed_factor = interp(CS.out.vEgoRaw, self.LC_PID_speed_bp, self.LC_PID_speed_v)
@@ -647,16 +599,8 @@ class CarController(CarControllerBase):
         path_angle = clip(path_angle, -self.path_angle_max, self.path_angle_max)
 
 
-        # [OPTIMIZATION] Allow small path offset for long curve correction, improve cornering accuracy
-        # Original logic: Force path_offset = 0.0 (completely disable path offset)
-        # New logic: Allow ±20cm path offset for correction, only zero when strongly conflicting
-        # Conflict check: path_offset > 0.3m AND path_angle > 0.1 AND opposite signs
-        # Effect: Allow small path correction in long curves, improve cornering accuracy, reduce offset
-        if abs(path_offset) > 0.3 and abs(path_angle) > 0.1 and (path_offset * path_angle < 0):
-          # If path_offset and path_angle strongly conflict (opposite signs and both large), zero path_offset
-          path_offset = 0.0
-        # Otherwise, allow small path offset for correction (limited to ±20cm)
-        path_offset = clip(path_offset, -0.2, 0.2)  # Allow max 20cm offset for correction
+        # if path_offset and path_angle disagree, it can result in a very uncomortable ride, since path_angle is so strong, zero out path_offset signal before it is sent over canbus
+        path_offset = 0.0
 
         # Determine if a human is making a turn and trap the value
         # if a human turn is active, reset steering to prevent windup
@@ -744,48 +688,6 @@ class CarController(CarControllerBase):
         # The stock system has been seen rate limiting the brake accel to 5 m/s^3,
         # however even 3.5 m/s^3 causes some overshoot with a step response.
         accel = max(accel, self.accel - (3.5 * CarControllerParams.ACC_CONTROL_STEP * DT_CTRL))
-
-        # [OPTIMIZATION] Early curve deceleration prediction: use predicted curvature to decelerate 1-2s ahead, avoid starting deceleration in curve
-        # Problem: Original logic uses current curvature, deceleration too late at high speed (100 km/h) entering curve, safety risk
-        # Solution: Use model predicted curvature at 1.0s and 2.0s ahead to predict curve early
-        # Effect: Start deceleration 1-2s before entering curve, especially for high-speed curve entry
-        # Prediction points: 1.0s (short-term) and 2.0s (medium-term), use max of both for safety
-        if self.model is not None and len(self.model.orientation.x) >= 17:
-          # Get predicted curvature at 1.0s and 2.0s ahead
-          curvatures = np.array(self.model.orientationRate.z) / max(0.01, CS.out.vEgoRaw)
-          if len(curvatures) > 0 and len(ModelConstants.T_IDXS) > 0:
-            predicted_curvature_1s = interp(1.0, ModelConstants.T_IDXS, curvatures)
-            predicted_curvature_2s = interp(2.0, ModelConstants.T_IDXS, curvatures)
-            
-            # Use max predicted curvature within next 2s for safety
-            max_predicted_curvature = max(abs(predicted_curvature_1s), abs(predicted_curvature_2s))
-            
-            # Calculate required deceleration based on predicted curvature and current speed
-            # Formula: lateral acceleration a = v² × curvature (centripetal acceleration)
-            # Goal: Limit lateral acceleration to 3.5 m/s² for comfort and safety
-            v_ego_ms = CS.out.vEgoRaw
-            # Only apply when speed > 5.0 m/s (18 km/h) and predicted curvature > 0.003 (significant curves only)
-            if v_ego_ms > 5.0 and max_predicted_curvature > 0.003:
-              # Calculate required lateral acceleration
-              required_lat_accel = v_ego_ms * v_ego_ms * max_predicted_curvature
-              
-              # Target lateral acceleration limit (comfortable and safe)
-              max_lat_accel = 3.5  # m/s^2
-              
-              if required_lat_accel > max_lat_accel:
-                # Calculate target speed: target_speed = √(max_lat_accel / curvature)
-                target_speed = math.sqrt(max_lat_accel / max_predicted_curvature) if max_predicted_curvature > 0 else v_ego_ms
-                
-                # Calculate deceleration needed to reach target speed
-                # Use 2s look-ahead time to calculate deceleration
-                look_ahead_time = 2.0
-                speed_reduction_needed = max(0, v_ego_ms - target_speed)
-                curve_decel = speed_reduction_needed / look_ahead_time
-                
-                # Apply curve deceleration, but not exceeding max deceleration limit
-                # Blending strategy: 70% from curve prediction decel, 30% keep original accel request for smooth transition
-                curve_decel = min(curve_decel, 2.0)  # Limit deceleration to 2.0 m/s²
-                accel = accel * 0.3 + (accel - curve_decel) * 0.7
 
       accel = float(np.clip(accel, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX))
       gas = float(np.clip(gas, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX))
