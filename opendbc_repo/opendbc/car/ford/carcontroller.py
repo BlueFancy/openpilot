@@ -123,21 +123,27 @@ class CarController(CarControllerBase):
     self.lane_change_factor_bp = [4.4, 40.23] # what speed to adjust lane_change_factor
     self.lane_change_factor_low = 0.95 # lane_change_factor at 4.4 m/s
     self.lane_change_factor_high = 0.85 # updated from UI: lane_change_factor at 40.23 m/s
-    # [INTELLIGENT] Dynamic predicted curvature blend ratio based on road conditions
-    # Low curvature (straight/gentle curves): Use more model desired curvature (30% predicted) for stability
-    # High curvature (sharp curves): Use more predicted curvature (50% predicted) for better anticipation
-    # Original: 0.40 (fixed 40% predicted curvature for all conditions)
-    # Effect: Intelligent adaptation - trust model more on straight roads, trust prediction more on curves
-    # Benefits: Better stability on straight roads, better anticipation on curves, improved overall control
-    self.pc_blend_ratio_low_C_CAN = 0.30 # Reduced from 0.40 - trust model more on straight roads
-    self.pc_blend_ratio_high_C_CAN = 0.50 # Increased from 0.40 - trust prediction more on curves
-    self.pc_blend_ratio_low_C_CANFD = 0.30 # Reduced from 0.40 - trust model more on straight roads
-    self.pc_blend_ratio_high_C_CANFD = 0.50 # Increased from 0.40 - trust prediction more on curves
-    self.pc_blend_ratio_low_C_UI = 0.30 # Reduced from 0.40 - trust model more on straight roads
-    self.pc_blend_ratio_high_C_UI = 0.50 # Increased from 0.40 - trust prediction more on curves
+    # [OPTIMIZATION] Increase predicted curvature blend ratio for stronger steering torque
+    # Problem: Current blend ratio (30%/50%) may not provide enough predictive torque for sharp turns
+    # Solution: Increase to 40%/60% to use more predicted curvature, especially on sharp curves
+    # Effect: System uses more aggressive predicted curvature, enables stronger torque output for better angle reach
+    # Note: User feedback indicates current torque is too weak, need more aggressive prediction
+    # Low curvature (straight/gentle curves): 40% predicted (increased from 30%) - more predictive on straights
+    # High curvature (sharp curves): 60% predicted (increased from 50%) - much more predictive on curves
+    self.pc_blend_ratio_low_C_CAN = 0.40 # Increased from 0.30 - more predictive on straight roads for stronger response
+    self.pc_blend_ratio_high_C_CAN = 0.60 # Increased from 0.50 - much more predictive on curves for stronger torque
+    self.pc_blend_ratio_low_C_CANFD = 0.40 # Increased from 0.30 - more predictive on straight roads for stronger response
+    self.pc_blend_ratio_high_C_CANFD = 0.60 # Increased from 0.50 - much more predictive on curves for stronger torque
+    self.pc_blend_ratio_low_C_UI = 0.40 # Increased from 0.30 - more predictive on straight roads for stronger response
+    self.pc_blend_ratio_high_C_UI = 0.60 # Increased from 0.50 - much more predictive on curves for stronger torque
     self.pc_blend_ratio_bp = [0.0, 0.001] # curvature breakpoints in 1/m
-    self.large_curve_factor_low = 1.0 # factor to reduce curvature for small curves
-    self.large_curve_factor_high = 0.80 # factor to reduce curvature for large curves
+    # [OPTIMIZATION] Increase large curve factor to allow stronger torque output on sharp curves
+    # Problem: Current large_curve_factor_high = 0.80 reduces curvature by 20% on large curves, limiting torque
+    # Solution: Increase to 0.95 to allow more torque on sharp curves while maintaining some smoothing
+    # Effect: System can output more torque on sharp curves, better reach expected steering angles
+    # Note: User feedback indicates current torque is too weak, cannot reach expected angles
+    self.large_curve_factor_low = 1.0 # factor to reduce curvature for small curves (no reduction)
+    self.large_curve_factor_high = 0.95 # Increased from 0.80 to 0.95 - allow more torque on large curves (only 5% reduction)
     self.large_curve_factor_bp = [0.001, 0.02] # curvature breakpoints in 1/m
     self.large_curve_factor_v = [self.large_curve_factor_low, self.large_curve_factor_high] #  determine factor to reduce cu
 
@@ -215,9 +221,10 @@ class CarController(CarControllerBase):
     self.path_offset_max = 2.0  # too much path offset causes issues
     # [OPTIMIZATION] Synchronize with CURVATURE_MAX in values.py for consistency
     # Original: 0.02 (hardcoded, not synchronized)
-    # New: Use CarControllerParams.CURVATURE_MAX (0.03) to ensure parameter optimization takes effect
-    # Effect: Ensures curvature limit in carcontroller matches the optimized value in values.py
-    self.curvature_max = CarControllerParams.CURVATURE_MAX  # Synchronized with values.py (0.03)
+    # Previous: CarControllerParams.CURVATURE_MAX (0.03)
+    # New: Use CarControllerParams.CURVATURE_MAX (0.04) to ensure parameter optimization takes effect
+    # Effect: Ensures curvature limit in carcontroller matches the optimized value in values.py (now 0.04 for stronger torque)
+    self.curvature_max = CarControllerParams.CURVATURE_MAX  # Synchronized with values.py (0.04 for stronger torque)
     self.curvature_rate_max = 0.001023  # from dbc files
 
     # values from previous frame
