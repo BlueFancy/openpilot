@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import copy
 import re
 import os
@@ -23,44 +22,25 @@ class CarControllerParams:
   ACC_UI_STEP = 20      # ACCDATA_3, 5Hz
   BUTTONS_STEP = 5      # Steering_Data_FD1, 10Hz, but send twice as fast
 
-  # [OPTIMIZATION] Increase max curvature to allow larger steering angle changes and higher torque output
-  # Original: 0.02 (default Ford limit, conservative for modified vehicles)
-  # New: 0.03 (50% increase) - allows larger steering angles for modified Mondeo with Edge steering rack
-  # Effect: Enables higher torque output for sharper turns, better response for modified vehicle
-  CURVATURE_MAX = 0.03  # Max curvature for steering command, m^-1
-  
-  # [OPTIMIZATION] Increase driver intervention threshold to avoid false detection and allow higher torque output
-  # Original: 1.0 Nm (too low, causes frequent false detection of driver intervention)
-  # New: 2.0 Nm (100% increase) - reduces false positives, allows openpilot to output higher torque
-  # Effect: System only detects real driver intervention at higher torque, allowing openpilot more control authority
-  STEER_DRIVER_ALLOWANCE = 2.0  # Driver intervention threshold, Nm
+  CURVATURE_MAX = 0.02  # Max curvature for steering command, m^-1
+  STEER_DRIVER_ALLOWANCE = 1.0  # Driver intervention threshold, Nm
 
 
   # ANGLE_RATE_LIMIT_UP = AngleRateLimit(speed_bp=[5, 25], angle_v=[0.0006, 0.0004]) # windup limit
   # ANGLE_RATE_LIMIT_DOWN = AngleRateLimit(speed_bp=[5, 25], angle_v=[0.0006, 0.0006]) # unwind limit
-  # [OPTIMIZATION] Increase max curvature and curvature rate limits for better steering torque and response
-  # Max curvature: Increased from 0.02 to 0.03 (50% increase) - synchronized with CURVATURE_MAX
-  # Curvature rate limits: Increased to allow faster torque ramp-up for better response speed
-  # Original upward limit: [0.0026, 0.0013, 0.0001] -> New: [0.0031, 0.0016, 0.00012] (20% increase)
-  # Original downward limit: [0.0026, 0.0015, 0.0002] -> New: [0.0031, 0.0018, 0.00024] (20% increase)
-  # Effect: Allows faster curvature changes, improves steering response speed, enables higher torque output
   ANGLE_LIMITS: AngleSteeringLimits = AngleSteeringLimits(
-    0.03,  # Max curvature for steering command, m^-1 (synchronized with CURVATURE_MAX)
+    0.02,  # Max curvature for steering command, m^-1
     # Curvature rate limits
     # Max curvature is limited by the EPS to an equivalent of ~2.0 m/s^2 at all speeds,
     #  however max curvature rate linearly decreases as speed increases:
     #  ~0.009 m^-1/sec at 7 m/s, ~0.002 m^-1/sec at 35 m/s
     # Limit to ~2 m/s^3 up, ~3.3 m/s^3 down at 75 mph and match EPS limit at low speed
-    # Speed breakpoints: [5, 16, 25] m/s correspond to [18, 58, 90] km/h
-    ([5, 16, 25], [0.0031, 0.0016, 0.00012]),  # Upward rate limit (20% increase from original 0.0026/0.0013/0.0001)
-    ([5, 16, 25], [0.0031, 0.0018, 0.00024])   # Downward rate limit (20% increase from original 0.0026/0.0015/0.0002)
+    # ([5, 16.0, 25], [0.00045, 0.00025, 0.00010]),
+    # ([5, 16.0, 25], [0.00045, 0.00025, 0.00015])
+    ([5, 16, 25], [0.0026, 0.0013, 0.0001]),
+    ([5, 16, 25], [0.0026, 0.0015, 0.0002])
   )
-  # [OPTIMIZATION] Increase curvature error tolerance for better path deviation sensitivity and torque output
-  # Original: 0.002 (~6 deg @ 10 m/s, ~10 deg @ 35 m/s)
-  # New: 0.003 (~9 deg @ 10 m/s, ~15 deg @ 35 m/s) - 50% increase
-  # Effect: System reacts more aggressively to path deviations, increases torque output for faster correction
-  # Note: Balanced value between sensitivity and stability (0.004 may be too sensitive)
-  CURVATURE_ERROR = 0.003  # ~9 degrees at 10 m/s, ~15 degrees at 35 m/s (balanced for better response)
+  CURVATURE_ERROR = 0.002  # ~6 degrees at 10 m/s, ~10 degrees at 35 m/s
 
   ACCEL_MAX = 2.0               # m/s^2 max acceleration
   ACCEL_MIN = -3.5              # m/s^2 max deceleration
