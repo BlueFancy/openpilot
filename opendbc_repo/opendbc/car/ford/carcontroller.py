@@ -123,27 +123,21 @@ class CarController(CarControllerBase):
     self.lane_change_factor_bp = [4.4, 40.23] # what speed to adjust lane_change_factor
     self.lane_change_factor_low = 0.95 # lane_change_factor at 4.4 m/s
     self.lane_change_factor_high = 0.85 # updated from UI: lane_change_factor at 40.23 m/s
-    # [OPTIMIZATION] Increase predicted curvature blend ratio for stronger steering torque
-    # Problem: Current blend ratio (30%/50%) may not provide enough predictive torque for sharp turns
-    # Solution: Increase to 40%/60% to use more predicted curvature, especially on sharp curves
-    # Effect: System uses more aggressive predicted curvature, enables stronger torque output for better angle reach
-    # Note: User feedback indicates current torque is too weak, need more aggressive prediction
-    # Low curvature (straight/gentle curves): 40% predicted (increased from 30%) - more predictive on straights
-    # High curvature (sharp curves): 60% predicted (increased from 50%) - much more predictive on curves
-    self.pc_blend_ratio_low_C_CAN = 0.40 # Increased from 0.30 - more predictive on straight roads for stronger response
-    self.pc_blend_ratio_high_C_CAN = 0.60 # Increased from 0.50 - much more predictive on curves for stronger torque
-    self.pc_blend_ratio_low_C_CANFD = 0.40 # Increased from 0.30 - more predictive on straight roads for stronger response
-    self.pc_blend_ratio_high_C_CANFD = 0.60 # Increased from 0.50 - much more predictive on curves for stronger torque
-    self.pc_blend_ratio_low_C_UI = 0.40 # Increased from 0.30 - more predictive on straight roads for stronger response
-    self.pc_blend_ratio_high_C_UI = 0.60 # Increased from 0.50 - much more predictive on curves for stronger torque
+    # [INTELLIGENT] Dynamic predicted curvature blend ratio based on road conditions
+    # Low curvature (straight/gentle curves): Use more model desired curvature (30% predicted) for stability
+    # High curvature (sharp curves): Use more predicted curvature (50% predicted) for better anticipation
+    # Original: 0.40 (fixed 40% predicted curvature for all conditions)
+    # Effect: Intelligent adaptation - trust model more on straight roads, trust prediction more on curves
+    # Benefits: Better stability on straight roads, better anticipation on curves, improved overall control
+    self.pc_blend_ratio_low_C_CAN = 0.30 # Reduced from 0.40 - trust model more on straight roads
+    self.pc_blend_ratio_high_C_CAN = 0.50 # Increased from 0.40 - trust prediction more on curves
+    self.pc_blend_ratio_low_C_CANFD = 0.30 # Reduced from 0.40 - trust model more on straight roads
+    self.pc_blend_ratio_high_C_CANFD = 0.50 # Increased from 0.40 - trust prediction more on curves
+    self.pc_blend_ratio_low_C_UI = 0.30 # Reduced from 0.40 - trust model more on straight roads
+    self.pc_blend_ratio_high_C_UI = 0.50 # Increased from 0.40 - trust prediction more on curves
     self.pc_blend_ratio_bp = [0.0, 0.001] # curvature breakpoints in 1/m
-    # [OPTIMIZATION] Increase large curve factor to allow stronger torque output on sharp curves
-    # Problem: Current large_curve_factor_high = 0.80 reduces curvature by 20% on large curves, limiting torque
-    # Solution: Increase to 0.95 to allow more torque on sharp curves while maintaining some smoothing
-    # Effect: System can output more torque on sharp curves, better reach expected steering angles
-    # Note: User feedback indicates current torque is too weak, cannot reach expected angles
-    self.large_curve_factor_low = 1.0 # factor to reduce curvature for small curves (no reduction)
-    self.large_curve_factor_high = 0.95 # Increased from 0.80 to 0.95 - allow more torque on large curves (only 5% reduction)
+    self.large_curve_factor_low = 1.0 # factor to reduce curvature for small curves
+    self.large_curve_factor_high = 0.80 # factor to reduce curvature for large curves
     self.large_curve_factor_bp = [0.001, 0.02] # curvature breakpoints in 1/m
     self.large_curve_factor_v = [self.large_curve_factor_low, self.large_curve_factor_high] #  determine factor to reduce cu
 
@@ -181,11 +175,8 @@ class CarController(CarControllerBase):
     self.LC_PID_GAIN_CANFD_LARGE_VEHICLE = 3.0
     self.LC_PID_GAIN_UI = 0.0 # gain for UI tuning
     self.LC_PID_GAIN = 0.0
-    # [OPTIMIZATION] Restore original PID parameters for better responsiveness
-    # Based on user feedback: reduced PID caused frequent manual takeovers
-    # Original working values: k_p=0.25, k_i=0.05 provide good balance between responsiveness and stability
-    self.LC_PID_k_p = 0.25  # Restored from 0.18 for better responsiveness
-    self.LC_PID_k_i = 0.05  # Restored from 0.03 for better correction ability
+    self.LC_PID_k_p = 0.25
+    self.LC_PID_k_i = 0.05
     self.LC_PID_controller = PIDController(k_p=self.LC_PID_k_p, k_i=self.LC_PID_k_i, rate=20)
     self.LC_PID_speed_bp = [0.0, 9.0, 15.0]  # speed breakpoints in m/s
     # [INTELLIGENT] Enable partial PID control at low speed for better lane centering
@@ -195,12 +186,7 @@ class CarController(CarControllerBase):
     # Benefits: Better lane keeping in low-speed scenarios, smoother transitions, improved overall control
     self.LC_PID_speed_v = [0.3, 0.5, 1.0]  # Enable 30% control at low speed, 50% at medium speed, 100% at high speed
     self.LC_path_angle_ROC_bp = [5, 15, 25]  # speed breakpoints in m/s
-    # [FIX] Increase path angle rate of change limit for faster correction response
-    # Original: [0.003, 0.0015, 0.002] (too conservative, slow correction)
-    # New: [0.004, 0.002, 0.0025] (30-33% increase) - allows faster correction
-    # Effect: Faster path angle changes, quicker response to offsets
-    # Benefits: System can correct offsets more quickly, improves responsiveness
-    self.LC_path_angle_ROC_v = [0.004, 0.002, 0.0025]  # Increased by 30-33% for faster correction
+    self.LC_path_angle_ROC_v = [0.003, 0.0015, 0.002]  # match panda limits
     self.LC_path_angle_reset_counter = 0
     self.LC_path_angle_reset_duration = 1.5 # in seconds
 
@@ -221,10 +207,9 @@ class CarController(CarControllerBase):
     self.path_offset_max = 2.0  # too much path offset causes issues
     # [OPTIMIZATION] Synchronize with CURVATURE_MAX in values.py for consistency
     # Original: 0.02 (hardcoded, not synchronized)
-    # Previous: CarControllerParams.CURVATURE_MAX (0.03)
-    # New: Use CarControllerParams.CURVATURE_MAX (0.04) to ensure parameter optimization takes effect
-    # Effect: Ensures curvature limit in carcontroller matches the optimized value in values.py (now 0.04 for stronger torque)
-    self.curvature_max = CarControllerParams.CURVATURE_MAX  # Synchronized with values.py (0.04 for stronger torque)
+    # New: Use CarControllerParams.CURVATURE_MAX (0.03) to ensure parameter optimization takes effect
+    # Effect: Ensures curvature limit in carcontroller matches the optimized value in values.py
+    self.curvature_max = CarControllerParams.CURVATURE_MAX  # Synchronized with values.py (0.03)
     self.curvature_rate_max = 0.001023  # from dbc files
 
     # values from previous frame
@@ -572,9 +557,10 @@ class CarController(CarControllerBase):
           path_offset = 0
 
         # Use the UI variable for adjustable Gain and set the PID gain to a fixed number, UI variable divided by 100 to make UI variable more closely match the 2.1 logic tuning.
-        # [OPTIMIZATION] Restore original path offset error sensitivity for better obstacle avoidance
-        # Based on user feedback: reduced sensitivity caused frequent manual takeovers
-        # Original working value: 1.5 provides good balance between responsiveness and stability
+        # [OPTIMIZATION] Increase path offset error sensitivity by 50% for better obstacle avoidance response
+        # Original: path_offset * (LC_PID_gain_UI/100)
+        # New: path_offset * (LC_PID_gain_UI/100) * 1.5 - 50% sensitivity increase
+        # Effect: More responsive to obstacles, faster path offset response
         path_offset_error = (path_offset * (self.LC_PID_gain_UI/100) * 1.5)
 
         # determine speed factor
@@ -755,26 +741,17 @@ class CarController(CarControllerBase):
         # TODO: verify this applies to EV/hybrid
         accel = apply_creep_compensation(accel, CS.out.vEgo)
 
-        # [OPTIMIZATION] Improved acceleration rate limiting for smoother longitudinal control
-        # Based on Ford Q3 optimization article: jerk limit should be 0.5 m/s³ for comfort
-        # Original: 3.5 m/s³ (too aggressive, causes jerky acceleration changes)
-        # New: 0.5 m/s³ (smoother, more comfortable, reduces frequent takeovers)
-        # Effect: Much smoother acceleration transitions, better passenger comfort
-        # Benefits: Reduces jerky acceleration/deceleration, prevents forced manual takeovers
-        jerk_limit = 0.5  # m/s³ - target jerk limit for smooth control (from Ford Q3 optimization)
-        accel_rate_limit = jerk_limit * CarControllerParams.ACC_CONTROL_STEP * DT_CTRL
-        accel = max(accel, self.accel - accel_rate_limit)
-        # Also limit upward acceleration changes for smoothness
-        accel = min(accel, self.accel + accel_rate_limit)
+        # The stock system has been seen rate limiting the brake accel to 5 m/s^3,
+        # however even 3.5 m/s^3 causes some overshoot with a step response.
+        accel = max(accel, self.accel - (3.5 * CarControllerParams.ACC_CONTROL_STEP * DT_CTRL))
 
-        # [OPTIMIZATION] Improved curve deceleration: smoother and more predictive
-        # Based on Ford Q3 optimization article: use predictive control with smooth transitions
-        # Problem: Previous implementation was too aggressive, causing jerky deceleration
-        # Solution: Use predicted curvature with smoother blending and gentler deceleration
-        # Effect: Predictive curve deceleration with smooth transitions, better comfort
-        # Benefits: Reduces jerky deceleration, prevents forced manual takeovers in curves
+        # [OPTIMIZATION] Early curve deceleration prediction: use predicted curvature to decelerate 1-2s ahead, avoid starting deceleration in curve
+        # Problem: Original logic uses current curvature, deceleration too late at high speed (100 km/h) entering curve, safety risk
+        # Solution: Use model predicted curvature at 1.0s and 2.0s ahead to predict curve early
+        # Effect: Start deceleration 1-2s before entering curve, especially for high-speed curve entry
+        # Prediction points: 1.0s (short-term) and 2.0s (medium-term), use max of both for safety
         if self.model is not None and len(self.model.orientation.x) >= 17:
-          # Get predicted curvature at 1.0s and 2.0s ahead for early prediction
+          # Get predicted curvature at 1.0s and 2.0s ahead
           curvatures = np.array(self.model.orientationRate.z) / max(0.01, CS.out.vEgoRaw)
           if len(curvatures) > 0 and len(ModelConstants.T_IDXS) > 0:
             predicted_curvature_1s = interp(1.0, ModelConstants.T_IDXS, curvatures)
@@ -785,10 +762,10 @@ class CarController(CarControllerBase):
             
             # Calculate required deceleration based on predicted curvature and current speed
             # Formula: lateral acceleration a = v² × curvature (centripetal acceleration)
+            # Goal: Limit lateral acceleration to 3.5 m/s² for comfort and safety
             v_ego_ms = CS.out.vEgoRaw
-            # Only apply when speed > 10.0 m/s (36 km/h) and predicted curvature > 0.005 (significant curves only)
-            # Increased threshold to avoid unnecessary deceleration on gentle curves
-            if v_ego_ms > 10.0 and max_predicted_curvature > 0.005:
+            # Only apply when speed > 5.0 m/s (18 km/h) and predicted curvature > 0.003 (significant curves only)
+            if v_ego_ms > 5.0 and max_predicted_curvature > 0.003:
               # Calculate required lateral acceleration
               required_lat_accel = v_ego_ms * v_ego_ms * max_predicted_curvature
               
@@ -800,16 +777,15 @@ class CarController(CarControllerBase):
                 target_speed = math.sqrt(max_lat_accel / max_predicted_curvature) if max_predicted_curvature > 0 else v_ego_ms
                 
                 # Calculate deceleration needed to reach target speed
-                # Use 2.5s look-ahead time for smoother deceleration (increased from 2.0s)
-                look_ahead_time = 2.5
+                # Use 2s look-ahead time to calculate deceleration
+                look_ahead_time = 2.0
                 speed_reduction_needed = max(0, v_ego_ms - target_speed)
                 curve_decel = speed_reduction_needed / look_ahead_time
                 
-                # Apply curve deceleration with smoother blending
-                # Blending strategy: 50% from curve prediction decel, 50% keep original accel request
-                # This provides smoother transition and reduces jerky deceleration
-                curve_decel = min(curve_decel, 1.5)  # Limit deceleration to 1.5 m/s² (reduced from 2.0 for smoother control)
-                accel = accel * 0.5 + (accel - curve_decel) * 0.5
+                # Apply curve deceleration, but not exceeding max deceleration limit
+                # Blending strategy: 70% from curve prediction decel, 30% keep original accel request for smooth transition
+                curve_decel = min(curve_decel, 2.0)  # Limit deceleration to 2.0 m/s²
+                accel = accel * 0.3 + (accel - curve_decel) * 0.7
 
       accel = float(np.clip(accel, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX))
       gas = float(np.clip(gas, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX))
