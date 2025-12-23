@@ -41,7 +41,7 @@ class CarControllerParams:
     ([5.0, 16.0, 25.0], [0.0045, 0.0030, 0.00030]),  # Up rate: increased to allow faster steering buildup
     ([5.0, 16.0, 25.0], [0.0045, 0.0030, 0.00050])   # Down rate: increased to allow faster steering release
   )
-  CURVATURE_ERROR = 0.01  # Increased from 0.002 to allow larger per-frame curvature changes (~6 degrees at 10 m/s, ~10 degrees at 35 m/s)
+  CURVATURE_ERROR = 0.002  # Increased from 0.002 to allow larger per-frame curvature changes (start with 0.004 for stability, can increase to 0.006 if snake-like roads need more aggressive response)
 
   ACCEL_MAX = 2.0               # m/s^2 max acceleration
   ACCEL_MIN = -3.5              # m/s^2 max deceleration
