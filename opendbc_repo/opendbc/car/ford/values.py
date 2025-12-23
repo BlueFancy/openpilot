@@ -22,8 +22,8 @@ class CarControllerParams:
   ACC_UI_STEP = 20      # ACCDATA_3, 5Hz
   BUTTONS_STEP = 5      # Steering_Data_FD1, 10Hz, but send twice as fast
 
-  CURVATURE_MAX = 0.02  # Max curvature for steering command, m^-1
-  STEER_DRIVER_ALLOWANCE = 1.0  # Driver intervention threshold, Nm
+  CURVATURE_MAX = 0.03  # Max curvature for steering command, m^-1 (increased from 0.02 to allow more steering angle)
+  STEER_DRIVER_ALLOWANCE = 2.5  # Driver intervention threshold, Nm (increased from 1.0 to avoid too early reduction of output)
 
 
   # ANGLE_RATE_LIMIT_UP = AngleRateLimit(speed_bp=[5, 25], angle_v=[0.0006, 0.0004]) # windup limit
@@ -38,8 +38,8 @@ class CarControllerParams:
     # Increased rate limits to allow faster steering response (was [0.0026, 0.0013, 0.0001])
     # ([5, 16.0, 25], [0.00045, 0.00025, 0.00010]),
     # ([5, 16.0, 25], [0.00045, 0.00025, 0.00015])
-    ([5, 16, 25], [0.0045, 0.0030, 0.0003]),  # Up rate: increased to allow faster steering buildup
-    ([5, 16, 25], [0.0045, 0.0030, 0.0005])   # Down rate: increased to allow faster steering release
+    ([5.0, 16.0, 25.0], [0.0045, 0.0030, 0.00030]),  # Up rate: increased to allow faster steering buildup
+    ([5.0, 16.0, 25.0], [0.0045, 0.0030, 0.00050])   # Down rate: increased to allow faster steering release
   )
   CURVATURE_ERROR = 0.01  # Increased from 0.002 to allow larger per-frame curvature changes (~6 degrees at 10 m/s, ~10 degrees at 35 m/s)
 
