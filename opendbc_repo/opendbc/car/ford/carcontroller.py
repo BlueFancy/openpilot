@@ -296,6 +296,10 @@ class CarController(CarControllerBase):
     # Trigger the update of the settings params
     # update_settings_params(self)
     update_custom_params(self, "carcontroller")
+    
+    # Ensure human_turn_detection is disabled during debugging to prevent frequent resets
+    # This prevents false positives from light touches during normal driving
+    self.enable_human_turn_detection = False
 
     actuators = CC.actuators
     hud_control = CC.hudControl
@@ -482,7 +486,9 @@ class CarController(CarControllerBase):
           desired_curvature_rate = 0.0
 
         # Determine if a human is making a turn and trap the value
-        if steeringPressed and abs(steeringAngleDeg_PV) > 45:
+        # Increased threshold from 45° to 80° to avoid false positives during normal driving
+        # Only trigger on significant driver intervention, not light touches
+        if steeringPressed and abs(steeringAngleDeg_PV) > 80:
           self.human_turn = True
         else:
           self.human_turn = False
@@ -587,10 +593,11 @@ class CarController(CarControllerBase):
         # path_angle_roc = interp(abs(CS.out.vEgoRaw), [5, 25], [0.003, 0.002])
         # path_angle = clip(path_angle, self.path_angle_last - path_angle_roc, self.path_angle_last + path_angle_roc)
 
-        # Apply post lane change transition logic
-        path_angle, path_offset, desired_curvature_rate = self.handle_post_lane_change_transition(
-            path_angle, path_offset, desired_curvature_rate
-        )
+        # Temporarily disable post-lane-change transition to avoid affecting normal curves and snake-like roads
+        # The 160-frame (8-second) rate limiting was causing issues with small curve corrections
+        # path_angle, path_offset, desired_curvature_rate = self.handle_post_lane_change_transition(
+        #     path_angle, path_offset, desired_curvature_rate
+        # )
 
         # clip all values to max.
         apply_curvature = clip(apply_curvature, -self.curvature_max, self.curvature_max)
@@ -598,16 +605,23 @@ class CarController(CarControllerBase):
         path_offset = clip(path_offset, -self.path_offset_max, self.path_offset_max)
         path_angle = clip(path_angle, -self.path_angle_max, self.path_angle_max)
 
-
-        # if path_offset and path_angle disagree, it can result in a very uncomortable ride, since path_angle is so strong, zero out path_offset signal before it is sent over canbus
-        path_offset = 0.0
+        # Temporarily enable path_offset to restore lane centering functionality
+        # Previously, path_offset was forced to 0.0, which disabled the lane centering correction
+        # This was causing issues where the vehicle would drift out and not correct back
+        # If path_offset and path_angle conflict in the future, use a gentler blending approach instead of zeroing
+        # path_offset = 0.0
 
         # Determine if a human is making a turn and trap the value
         # if a human turn is active, reset steering to prevent windup
-        if steeringPressed and abs(steeringAngleDeg_PV) > 45:
+        # Increased threshold from 45° to 80° to avoid false positives during normal driving
+        if steeringPressed and abs(steeringAngleDeg_PV) > 80:
           self.human_turn = True
         else:
           self.human_turn = False
+
+        # Temporarily disable human_turn_detection to avoid frequent resets that cause "drift out without correction"
+        # This prevents false positives from light touches during normal driving
+        self.enable_human_turn_detection = False
 
         # Determine when to reset steering
         if ((self.human_turn) and self.enable_human_turn_detection) or (CS.out.vEgoRaw < 0.1):
