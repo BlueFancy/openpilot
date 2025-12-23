@@ -23,7 +23,7 @@ class CarControllerParams:
   BUTTONS_STEP = 5      # Steering_Data_FD1, 10Hz, but send twice as fast
 
   CURVATURE_MAX = 0.03  # Max curvature for steering command, m^-1 (increased from 0.02 to allow more steering angle)
-  STEER_DRIVER_ALLOWANCE = 2.5  # Driver intervention threshold, Nm (increased from 1.0 to avoid too early reduction of output)
+  STEER_DRIVER_ALLOWANCE = 0.8  # Driver intervention threshold, Nm (reduced from 1.0 to 0.8 for faster driver override detection and quicker re-engagement)
 
 
   # ANGLE_RATE_LIMIT_UP = AngleRateLimit(speed_bp=[5, 25], angle_v=[0.0006, 0.0004]) # windup limit
