@@ -1,8 +1,8 @@
 {
-  "_comment": "This configuration file defines all Ford settings panels, groups, and controls.",
+  "_comment": "这个配置文件定义了 Ford 相关 BluePilot 设置面板、分组和控件。",
   "menuName": "BluePilot",
   "menuIcon": "icon_ford.png",
-  "menuDescription": "BluePilot Panel",
+  "menuDescription": "BluePilot 设置面板",
   "persistentParams": [],
   "clearOnManagerStartParams": [],
   "clearOnOnroadTransitionParams": [],
@@ -10,14 +10,14 @@
   "groups": [
     {
       "groupName": "systemPreferencesGroup",
-      "title": "System Preferences: (Tap item for desc)",
+      "title": "系统设置（点击条目查看说明）",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "FordPrefEnableDebugLogs",
-          "title": "Enable Debug Logging",
-          "desc": "Enables additional debug output.",
+          "title": "启用调试日志",
+          "desc": "记录更详细的调试输出，便于排查问题（会略微增加存储占用）。",
           "hidden": false,
           "conditions": {
             "git_remote": ["ford-op/sp-dev-c3"],
@@ -28,14 +28,14 @@
     },
     {
       "groupName": "clusterPreferencesGroup",
-      "title": "Cluster Preferences: (Tap item for desc)",
+      "title": "原车仪表显示设置（点击条目查看说明）",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "FordPrefSendHandsFreeCanMsg",
-          "title": "Show Hands-Free UI (On Supported Vehicles)",
-          "desc": "Sends necessary messages for Hands-Free interface.",
+          "title": "仪表显示“免手持”UI（仅支持车型）",
+          "desc": "向车辆发送必要 CAN 消息，以启用原车仪表的“免手持/驾驶辅助”界面显示，仅影响提示，不改变控制逻辑。",
           "hidden": false,
           "conditions": {
             "git_remote": ["any"],
@@ -45,8 +45,8 @@
         {
           "type": "toggle",
           "param": "FordPrefLaneDepartCanMsg",
-          "title": "Send Lane Departure Signals to Vehicle",
-          "desc": "Send Openpilot lane departure signals for native cluster alerts.",
+          "title": "发送车道偏离信号给车辆",
+          "desc": "将 openpilot 的车道偏离信号发送给原车仪表，让原车使用自带提示音/图标提醒你偏离车道，不改变车辆实际转向控制。",
           "hidden": false,
           "conditions": {
             "git_remote": ["any"],
@@ -56,8 +56,8 @@
         {
           "type": "toggle",
           "param": "FordPrefDriverMonitorCanMsg",
-          "title": "Send Driver Monitor Signals",
-          "desc": "Send driver monitor notice signals to the vehicle for native cluster alerts.",
+          "title": "发送驾驶员监控信号",
+          "desc": "将 openpilot 的驾驶员注意力状态发送给车辆，用原车仪表提醒你注意路况，不改变车辆控制逻辑。",
           "hidden": false,
           "conditions": {
             "git_remote": ["any"],
@@ -68,26 +68,25 @@
     },
     {
       "groupName": "lateralControlsGroup",
-      "title": "Lateral Controls: (Tap item for desc)",
+      "title": "横向控制（转向）调校（点击条目查看说明）",
       "enableResetButton": true,
       "controls": [
         {
           "type": "toggle",
           "param": "FordPrefHumanTurnDetectionEnable",
-          "title": "Enable Human Turn Detection",
-          "desc": "Reset steering so you don't fight the wheel making manual turns.",
+          "title": "启用“人工转向检测”",
+          "desc": "当你手动打大方向时自动重置 openpilot 的转向控制，避免和你抢方向盘。调校不当可能影响接管体验，不熟悉建议关闭。",
           "hidden": false,
           "conditions": {
             "git_remote": ["any"],
             "git_branch": []
           }
         },
-
         {
           "type": "float",
           "param": "FordLatTuningLaneChangeFactorHighUI",
-          "title": "Lane Change Factor",
-          "desc": "Lower numbers for less aggressive lane change",
+          "title": "变道曲率强度",
+          "desc": "调整自动变道时的转向强度：数值越低，变道越柔和；数值越高，变道越接近原始规划轨迹、略激进。对直线稳定影响不大。",
           "hidden": false,
           "min": 0.0,
           "max": 1.0,
@@ -100,30 +99,28 @@
             ]
           }
         },
-
         {
           "type": "toggle",
           "param": "FordLatTuningEnableAdvLatCtrl",
-          "title": "Enable Advanced Lateral Control",
-          "desc": "Enable Advanced Lateral Control such as in lane positioning.",
+          "title": "启用高级横向控制（车道内精细定位）",
+          "desc": "开启后，系统会使用额外的算法进行车道内微调（居中、略偏左/右等）。调校不当可能出现左右晃动。建议先关闭，等基本表现熟悉后再尝试。",
           "hidden": false,
           "conditions": {
             "git_remote": ["any"],
             "git_branch": []
           }
         },
-
         {
           "type": "segmented_control",
           "param": "FordLatTuningProfile",
-          "title": "Tuning Profile",
-          "desc": "Sets the tuning aggressiveness profile",
+          "title": "横向调校档位",
+          "desc": "设置横向控制的整体“激进度”档位，仅在启用高级横向控制时生效。",
           "hidden": false,
           "options": [
-            { "name": "Low", "value": "1", "default": true },
-            { "name": "Medium", "value": "2" },
-            { "name": "High", "value": "3" },
-            { "name": "Custom", "value": "4" }
+            { "name": "低（温和、稳重）", "value": "1", "default": true },
+            { "name": "中（折中）", "value": "2" },
+            { "name": "高（响应积极）", "value": "3" },
+            { "name": "自定义（完全自己调）", "value": "4" }
           ],
           "conditions": {
             "allConditionsTrue": [
@@ -133,12 +130,11 @@
             ]
           }
         },
-
         {
           "type": "toggle",
           "param": "FordLatTuningEnableLanefullMode",
-          "title": "Enable Legacy Style Lanefull Mode",
-          "desc": "Enable Auto Lanefull Mode similar to legacy SunnyPilot'",
+          "title": "启用旧版“LaneFull 模式”",
+          "desc": "启用类似早期 sunnypilot 的 LaneFull 自动模式，更积极地利用车道线和道路边界来控制车辆。可能增加晃动，建议在熟悉车辆行为后再尝试。",
           "hidden": false,
           "conditions": {
             "allConditionsTrue": [
@@ -148,12 +144,11 @@
             ]
           }
         },
-
         {
           "type": "float",
           "param": "FordLatTuningCustomPathOffset",
-          "title": "In Lane Offset",
-          "desc": "Positions car further left (negative) or right (positive)",
+          "title": "车道内偏移量",
+          "desc": "设定车辆在车道中的偏移：负值偏向车道左侧，正值偏向车道右侧（单位大约为米）。不熟悉建议保持 0。",
           "hidden": false,
           "min": -0.5,
           "max": 0.5,
@@ -170,8 +165,8 @@
         {
           "type": "float",
           "param": "FordLatTuningPCBlendRatioUI",
-          "title": "Predicted Curvature Blend Ratio",
-          "desc": "Higher numbers to reduce ping pong, lower numbers to reduce wandering",
+          "title": "预测曲率混合比例（自定义档）",
+          "desc": "控制“模型预测曲率”和“基础曲率”的混合程度：数值偏大可以减轻左右乒乓，数值偏小可以减轻慢慢漂移。仅在 Tuning Profile 选择自定义时生效，不熟悉建议勿动。",
           "hidden": false,
           "min": 0.0,
           "max": 1.0,
@@ -189,8 +184,8 @@
         {
           "type": "float",
           "param": "FordLatTuningPathAngleHighSpeedFactorUI",
-          "title": "Straight Away Smoothing Factor",
-          "desc": "Lower numbers to reduce twitchy steering, higher numbers decreaase wadnering or slow ping pong",
+          "title": "直路平滑系数（自定义档）",
+          "desc": "控制高速直行时路径角度修正的幅度：数值越小方向盘越平顺，数值越大高车速下纠偏更积极。仅在自定义档且启用高级横向控制时有效，建议谨慎调整。",
           "hidden": false,
           "min": 0.0,
           "max": 50.0,
@@ -208,8 +203,8 @@
         {
           "type": "float",
           "param": "FordLatTuningPathAngleHighCurvatureFactorUI",
-          "title": "Curve Smoothing Factor",
-          "desc": "Lower numbers to reduce twitchy steering, higher numbers decreaase wadnering or slow ping pong",
+          "title": "弯道平滑系数（自定义档）",
+          "desc": "控制在较大弯道中，路径角度修正的强度：数值小可以减少“抖动、灵敏”，数值大可以减少“慢慢偏出车道”。仅建议有经验后微调。",
           "hidden": false,
           "min": 0.0,
           "max": 1.0,
@@ -228,14 +223,14 @@
     },
     {
       "groupName": "brakeTuningGroup",
-      "title": "Brake Tuning: (Tap item for desc)",
+      "title": "刹车调校（点击条目查看说明）",
       "enableResetButton": true,
       "controls": [
         {
           "type": "float",
           "param": "FordLongTuningBrakeActuatorActivate",
-          "title": "Brake Actuator Activate",
-          "desc": "Acceleration setpoint for brake actuator activation.",
+          "title": "刹车执行器启动阈值",
+          "desc": "设置在多大的减速度下开始启用刹车执行器（纵向控制高级参数，一般保持默认）。",
           "hidden": false,
           "min": -0.2,
           "max": 0.2,
@@ -249,8 +244,8 @@
         {
           "type": "float",
           "param": "FordLongTuningBrakeActuatorReleaseDelta",
-          "title": "Brake Actuator Release Delta",
-          "desc": "Acceleration gap between activation and release.",
+          "title": "刹车执行器释放回程",
+          "desc": "设置刹车执行器“开始制动”与“停止制动”之间的加速度间隙（高级参数，一般保持默认）。",
           "hidden": false,
           "min": 0.0,
           "max": 0.2,
@@ -264,8 +259,8 @@
         {
           "type": "float",
           "param": "FordLongTuningPrechargeActuatorTargetDelta",
-          "title": "Precharge Actuator Target Delta",
-          "desc": "How much earlier to activate the precharge actuator.",
+          "title": "预充执行器提前量",
+          "desc": "控制预充刹车执行器提前介入的程度（隐藏高级参数，一般无需修改）。",
           "hidden": true,
           "min": 0.0,
           "max": 0.2,
@@ -280,15 +275,15 @@
     },
     {
       "groupName": "limitsTuningGroup",
-      "title": "Limits Tuning: (Tap item for desc)",
+      "title": "限制参数调校（高级，点击条目查看说明）",
       "enableResetButton": true,
       "controls": [
         {
-          "_comment": "Originally commented out in the code snippet",
+          "_comment": "原本在代码中被注释掉的项目，这里保持隐藏。",
           "type": "float",
           "param": "FordLimitsCurvatureMax",
-          "title": "Curvature Max",
-          "desc": "Defines the max curvature allowed.",
+          "title": "最大曲率限制",
+          "desc": "设定系统允许的最大转向曲率上限（高级参数，一般保持默认）。",
           "hidden": true,
           "min": 0.0,
           "max": 0.2,
@@ -302,8 +297,8 @@
         {
           "type": "float",
           "param": "FordLimitsCurvatureError",
-          "title": "Curvature Error",
-          "desc": "Defines the max curvature error allowed.",
+          "title": "曲率误差限制",
+          "desc": "设定系统允许的最大曲率误差（高级参数，一般保持默认）。",
           "hidden": true,
           "min": 0.0,
           "max": 0.02,
@@ -318,29 +313,29 @@
     },
     {
       "groupName": "paramViewerGroup",
-      "title": "Parameter Viewer",
+      "title": "参数查看",
       "enableResetButton": false,
       "controls": [
         {
           "type": "param_viewer",
           "param": "LiveParameters",
-          "title": "Live Parameters",
-          "desc": "View live parameters",
+          "title": "实时校准参数",
+          "desc": "查看当前实时学习到的车辆参数（如转向比、轮胎刚度等）。",
           "hidden": false
         }
       ]
     },
     {
       "groupName": "bpInfoGroup",
-      "title": "Other Information",
+      "title": "BluePilot 信息",
       "enableResetButton": false,
       "controls": [
         {
           "type": "file_viewer",
           "path": "CHANGELOGS_BP.md",
-          "title": "BluePilot Changelog",
-          "desc": "View the BluePilot changelog",
-          "header": "BluePilot Changelog",
+          "title": "BluePilot 更新日志",
+          "desc": "查看 BluePilot 的更新记录和变更说明。",
+          "header": "BluePilot 更新日志",
           "hidden": false
         }
       ]
