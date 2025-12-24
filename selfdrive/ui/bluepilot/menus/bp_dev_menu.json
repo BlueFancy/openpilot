@@ -2,25 +2,25 @@
   "type": "navigation",
   "menuName": "BluePilot",
   "menuIcon": "icon_ford.png",
-  "menuDescription": "BluePilot Panel",
+  "menuDescription": "BluePilot 设置面板",
   "equalWidth": true,
   "iconPosition": "top",
   "tabs": [
     {
-      "name": "Preferences",
+      "name": "首选项",
       "icon": "../assets/offroad/icon_user_prefs.png",
       "groups": [
         {
           "groupName": "visualOnroadPreferencesGroup",
-          "title": "Visual Onroad Preferences:",
+          "title": "行驶画面显示设置",
           "enableResetButton": false,
           "keepScreenAwake": true,
           "controls": [
             {
               "type": "toggle",
               "param": "FordPrefShowAnimatedWheelAngle",
-              "title": "Show Animated Steer Angle Icon",
-              "desc": "Animates Comma icon based on steering angle.",
+              "title": "显示转向角动画图标",
+              "desc": "根据方向盘转角动态旋转 Comma 图标，仅影响显示，不影响控制行为。",
               "hidden": false,
               "conditions": {
                 "allConditionsTrue": [
@@ -29,22 +29,22 @@
                 ]
               }
             },
-	    {
+            {
               "type": "selection",
               "param": "CustomModelPathColor",
-              "title": "Custom Model Path Color",
-              "desc": "Customize the color of the driving path overlay",
+              "title": "路径显示颜色",
+              "desc": "修改屏幕上车辆行驶路径的颜色，仅影响显示。",
               "hidden": false,
               "options": [
-                { "name": "Stock", "value": "Stock" },
-                { "name": "Rainbow", "value": "Rainbow" },
-                { "name": "Blue", "value": "Blue" },
-                { "name": "Green", "value": "Green" },
-                { "name": "Purple", "value": "Purple" },
-                { "name": "Orange", "value": "Orange" },
-                { "name": "Red", "value": "Red" },
-                { "name": "Cyan", "value": "Cyan" },
-                { "name": "Yellow", "value": "Yellow" }
+                { "name": "默认（Stock）", "value": "Stock" },
+                { "name": "彩虹（Rainbow）", "value": "Rainbow" },
+                { "name": "蓝色（Blue）", "value": "Blue" },
+                { "name": "绿色（Green）", "value": "Green" },
+                { "name": "紫色（Purple）", "value": "Purple" },
+                { "name": "橙色（Orange）", "value": "Orange" },
+                { "name": "红色（Red）", "value": "Red" },
+                { "name": "青色（Cyan）", "value": "Cyan" },
+                { "name": "黄色（Yellow）", "value": "Yellow" }
               ],
               "conditions": {
                 "git_remote": ["any"],
@@ -54,8 +54,8 @@
             {
               "type": "toggle",
               "param": "FordPrefHybridDriveOverlay",
-              "title": "Show Hybrid Electric Data Overlays",
-              "desc": "Displays hybrid electric vehicle data.",
+              "title": "显示混动驱动信息",
+              "desc": "在画面上叠加显示混合动力系统的相关数据（仅混动车有效）。",
               "hidden": false,
               "conditions": {
                 "allConditionsTrue": [
@@ -68,8 +68,8 @@
             {
               "type": "toggle",
               "param": "FordPrefHybridBatteryOverlay",
-              "title": "Show Hybrid Battery Data Overlays",
-              "desc": "Displays hybrid battery data.",
+              "title": "显示混动电池信息",
+              "desc": "在画面上叠加显示高压电池状态（仅混动车且支持该数据时有效）。",
               "hidden": false,
               "conditions": {
                 "allConditionsTrue": [
@@ -86,13 +86,13 @@
             {
               "type": "segmented_control",
               "param": "FordPrefHybridDriveGaugeSize",
-              "title": "Hybrid Drive Gauge Size",
-              "desc": "Adjusts the size of the hybrid drive gauge",
+              "title": "混动信息显示尺寸",
+              "desc": "调整混动驱动信息显示的大小。",
               "hidden": false,
               "options": [
-                { "name": "Small", "value": "1", "default": true },
-                { "name": "Medium", "value": "2" },
-                { "name": "Large", "value": "3" }
+                { "name": "小", "value": "1", "default": true },
+                { "name": "中", "value": "2" },
+                { "name": "大", "value": "3" }
               ],
               "conditions": {
                 "allConditionsTrue": [
@@ -110,14 +110,14 @@
         },
         {
           "groupName": "clusterPreferencesGroup",
-          "title": "Cluster Preferences:",
+          "title": "原车仪表显示设置",
           "enableResetButton": false,
           "controls": [
             {
               "type": "toggle",
               "param": "FordPrefSendHandsFreeCanMsg",
-              "title": "Show Hands-Free UI (On Supported Vehicles)",
-              "desc": "Enables hands-free UI for supported vehicles.",
+              "title": "仪表显示“免手持”提示（支持车型）",
+              "desc": "对支持的车辆，在原车仪表上显示类似“免手持”或驾驶辅助图标，仅为显示，不改变控制逻辑。",
               "hidden": false,
               "conditions": {
                 "git_remote": ["any"],
@@ -127,8 +127,8 @@
             {
               "type": "toggle",
               "param": "FordPrefLaneDepartCanMsg",
-              "title": "Send Lane Departure Signals to Vehicle",
-              "desc": "Send Openpilot lane departure signals for native cluster alerts.",
+              "title": "发送车道偏离信号给原车仪表",
+              "desc": "将 openpilot 检测到的车道偏离信息发送给原车仪表，用原车声音/图标提醒你，行驶行为保持不变。",
               "hidden": false,
               "conditions": {
                 "git_remote": ["any"],
@@ -138,8 +138,8 @@
             {
               "type": "toggle",
               "param": "FordPrefDriverMonitorCanMsg",
-              "title": "Send Driver Monitor Signals",
-              "desc": "Send driver monitor notice signals to the vehicle for native cluster alerts.",
+              "title": "发送驾驶员注意力信号给原车仪表",
+              "desc": "将 openpilot 的驾驶员监控状态发送给原车仪表，用原车提示提醒你注意路况，不改变转向控制。",
               "hidden": false,
               "conditions": {
                 "git_remote": ["any"],
@@ -151,19 +151,19 @@
       ]
     },
     {
-      "name": "Lat. Tuning",
+      "name": "横向调校",
       "icon": "../assets/offroad/icon_steering.png",
       "groups": [
         {
           "groupName": "lateralControlsGroup",
-          "title": "Lateral Controls:",
+          "title": "横向控制（转向）参数",
           "enableResetButton": true,
           "controls": [
             {
               "type": "toggle",
               "param": "FordPrefHumanTurnDetectionEnable",
-              "title": "Enable Human Turn Detection",
-              "desc": "Reset steering so you don't fight the wheel making manual turns.",
+              "title": "启用“人工转向检测”",
+              "desc": "当你手动大幅转弯时，自动重置 openpilot 的转向控制状态，避免和你抢方向盘。调试不当可能影响接管体验，不懂建议关闭。",
               "hidden": false,
               "conditions": {
                 "git_remote": ["any"],
@@ -173,8 +173,8 @@
             {
               "type": "float",
               "param": "FordLatTuningLaneChangeFactorHighUI",
-              "title": "Lane Change Factor",
-              "desc": "Lower numbers for less aggressive lane change",
+              "title": "变道曲率强度",
+              "desc": "变道时转向曲率的缩放比例：数值越低，变道越柔和；数值越高，变道越接近原始规划轨迹，略激进。对直线稳定性影响不大。",
               "hidden": false,
               "min": 0.0,
               "max": 1.0,
@@ -190,8 +190,8 @@
             {
               "type": "toggle",
               "param": "FordLatTuningEnableAdvLatCtrl",
-              "title": "Enable Advanced Lateral Control",
-              "desc": "Allows advanced lateral control such as in lane positioning.",
+              "title": "启用高级横向控制（车道内精细定位）",
+              "desc": "开启后，系统会使用更复杂的逻辑来在车道内微调位置（居中 / 略偏左 / 略偏右等），调校不当可能导致左右摇晃。建议先关闭，熟悉默认行为后再尝试。",
               "hidden": false,
               "conditions": {
                 "git_remote": ["any"],
@@ -201,14 +201,14 @@
             {
               "type": "segmented_control",
               "param": "FordLatTuningProfile",
-              "title": "Tuning Profile",
-              "desc": "Adjusts the tuning aggressiveness profile",
+              "title": "横向调校档位",
+              "desc": "调节转向控制的整体风格，仅在启用高级横向控制时生效。",
               "hidden": false,
               "options": [
-                { "name": "Low", "value": "1", "default": true },
-                { "name": "Medium", "value": "2" },
-                { "name": "High", "value": "3" },
-                { "name": "Custom", "value": "4" }
+                { "name": "低（温和、稳重）", "value": "1", "default": true },
+                { "name": "中（折中）", "value": "2" },
+                { "name": "高（响应积极）", "value": "3" },
+                { "name": "自定义（完全自己调）", "value": "4" }
               ],
               "conditions": {
                 "allConditionsTrue": [
@@ -225,8 +225,8 @@
             {
               "type": "toggle",
               "param": "FordLatTuningEnableLanefullMode",
-              "title": "Enable Legacy Style Lanefull Mode",
-              "desc": "Enables auto lanefull mode similar to legacy SunnyPilot",
+              "title": "启用旧版“LaneFull 模式”",
+              "desc": "模仿老版本 sunnypilot 的 LaneFull 行为，在某些场景下更积极利用车道线和道路边界进行控制。调得不好容易产生“左右晃”等副作用，建议先关闭。",
               "hidden": false,
               "conditions": {
                 "allConditionsTrue": [
@@ -243,8 +243,8 @@
             {
               "type": "float",
               "param": "FordLatTuningCustomPathOffset",
-              "title": "In Lane Offset",
-              "desc": "Adjusts lane position - left (-) / right (+)",
+              "title": "车道内偏移量",
+              "desc": "手动设定车辆在车道内靠左或靠右：负数为偏向车道左侧，正数为偏向右侧（单位约为米）。不熟悉建议保持 0。",
               "hidden": false,
               "min": -0.5,
               "max": 0.5,
@@ -265,8 +265,8 @@
             {
               "type": "float",
               "param": "FordLatTuningPCBlendRatioUI",
-              "title": "Predicted Curvature Blend Ratio",
-              "desc": "Higher numbers to reduce ping pong, lower numbers to reduce wandering",
+              "title": "预测曲率混合比例（自定义档）",
+              "desc": "控制“模型预测曲率”和“基础曲率”的混合程度：数值大些可以减轻左右乒乓，数值小些可以减轻慢慢漂移。仅在调校经验较多时建议修改。",
               "hidden": false,
               "min": 0.0,
               "max": 1.0,
@@ -288,8 +288,8 @@
             {
               "type": "float",
               "param": "FordLatTuningPathAngleHighSpeedFactorUI",
-              "title": "Path Angle Amplitude",
-              "desc": "Lower numbers to reduce twitchy steering, higher numbers decrease wandering or slow ping pong",
+              "title": "高车速下转向修正幅度（自定义）",
+              "desc": "控制高车速时路径角度修正的力度：数值越小方向盘越平顺，数值越大高车速时纠偏更积极。建议谨慎调整。",
               "hidden": false,
               "min": 0.0,
               "max": 50.0,
@@ -311,8 +311,8 @@
             {
               "type": "float",
               "param": "FordLatTuningPathAngleHighCurvatureFactorUI",
-              "title": "Path Angle in-Curve ReductionFactor",
-              "desc": "Lower numbers to reduce twitchy steering, higher numbers decrease wandering or slow ping pong",
+              "title": "弯道内转向修正减弱系数（自定义）",
+              "desc": "控制在较大弯道中，路径角度修正的减弱程度：数值小更平滑，数值大更积极补偿。不熟悉建议保持默认。",
               "hidden": false,
               "min": 0.0,
               "max": 1.0,
@@ -336,19 +336,19 @@
       ]
     },
     {
-      "name": "Long. Tuning",
+      "name": "纵向调校",
       "icon": "../assets/offroad/icon_brake_gas_pedals.png",
       "groups": [
         {
           "groupName": "longitudinalTuningGroup",
-          "title": "Brake Tuning:",
+          "title": "纵向控制（刹车）参数",
           "enableResetButton": true,
           "controls": [
             {
               "type": "float",
               "param": "FordLongTuningBrakeActuatorActivate",
-              "title": "Brake Actuator Activate",
-              "desc": "Acceleration setpoint for brake actuator activation.",
+              "title": "刹车执行器启动阈值",
+              "desc": "设定在多大的减速度下开始启用刹车执行器（高级调校项，一般保持默认）。",
               "hidden": false,
               "min": -0.2,
               "max": 0.2,
@@ -362,8 +362,8 @@
             {
               "type": "float",
               "param": "FordLongTuningBrakeActuatorReleaseDelta",
-              "title": "Brake Actuator Release Delta",
-              "desc": "Sets the gap between activation and release.",
+              "title": "刹车执行器释放回程",
+              "desc": "控制刹车执行器从“开始刹车”到“释放刹车”之间的回程间隔（高级调校项，一般保持默认）。",
               "hidden": false,
               "min": 0.0,
               "max": 0.2,
@@ -379,25 +379,25 @@
       ]
     },
     {
-      "name": "Utilities",
+      "name": "工具",
       "icon": "../assets/offroad/icon_toolbox.png",
       "groups": [
         {
           "groupName": "utilityCommandsGroup",
-          "title": "Utility Commands:",
+          "title": "工具与命令",
           "enableResetButton": false,
           "controls": [
             {
               "type": "command_button",
               "command": "echo \"Starting process...\" && for i in {1..5}; do echo \"[$(date '+%H:%M:%S')] Processing batch $i/5...\"; sleep 1; echo \"  -> Completed subtask $i\"; sleep 1; done && echo \"All tasks completed successfully!\"",
               "working_dir": "/data/openpilot",
-              "title": "Test Command",
-              "desc": "Test Command",
-              "button_text": "Test Command",
+              "title": "测试命令（示例）",
+              "desc": "运行一个测试命令，示例用途。",
+              "button_text": "运行测试命令",
               "confirm": true,
-              "confirm_text": "Are you sure you want to run this command?",
-              "confirm_button_text": "Run",
-              "cancel_button_text": "Cancel",
+              "confirm_text": "确定要运行这个测试命令吗？",
+              "confirm_button_text": "运行",
+              "cancel_button_text": "取消",
               "hidden": false,
               "conditions": {
                 "git_remote": ["ford-op/sp-dev-c3"],
@@ -408,9 +408,9 @@
               "type": "command_button",
               "command": "wget https://raw.githubusercontent.com/tonesto7/op-utilities/main/CommaUtility.sh && chmod +x /data/CommaUtility.sh",
               "working_dir": "/data",
-              "title": "Install Comma Utility",
-              "desc": "Install Comma Utility",
-              "button_text": "Install",
+              "title": "安装 Comma Utility 工具",
+              "desc": "下载并安装 Comma Utility 工具脚本。",
+              "button_text": "安装",
               "confirm": false,
               "hidden": false,
               "OnlyOnCommaDevice": true,
@@ -422,9 +422,9 @@
             {
               "type": "file_viewer",
               "path": "/data/community/crashes/error.txt",
-              "title": "Recent Crashes",
-              "desc": "View the crashes file",
-              "button_text": "View Error",
+              "title": "最近错误日志",
+              "desc": "查看最近的错误信息文件（如有）。",
+              "button_text": "查看错误",
               "confirm": false,
               "hidden": false,
               "conditions": {
@@ -436,9 +436,9 @@
               "type": "command_button",
               "command": "ifconfig",
               "working_dir": "/data/openpilot",
-              "title": "Get Network Info",
-              "desc": "Get network info using ifconfig",
-              "button_text": "Get Info",
+              "title": "查看网络信息",
+              "desc": "通过 ifconfig 查看当前网络配置。",
+              "button_text": "获取网络信息",
               "confirm": false,
               "hidden": false,
               "conditions": {
@@ -450,9 +450,9 @@
               "type": "command_button",
               "command": "tail -f /tmp/launch_log",
               "working_dir": "/data/openpilot",
-              "title": "View Launch Log",
-              "desc": "View the launch log",
-              "button_text": "View Log",
+              "title": "查看启动日志",
+              "desc": "实时查看 openpilot 启动日志输出。",
+              "button_text": "查看日志",
               "confirm": false,
               "hidden": false,
               "conditions": {
@@ -464,9 +464,9 @@
               "type": "command_button",
               "command": "/data/openpilot/scripts/force_branch_update.sh --test bp-5.0-beta",
               "working_dir": "/data/openpilot",
-              "title": "Test Force Update (Dry Run)",
-              "desc": "TEST MODE: Simulates the force update process without making any changes. Safe to run - no modifications will be made.",
-              "button_text": "Test Update",
+              "title": "测试强制更新（模拟，不真正更新）",
+              "desc": "测试模式：只模拟强制更新流程，不对系统进行任何修改。可以安全运行。",
+              "button_text": "测试更新流程",
               "confirm": false,
               "hidden": false,
               "OnlyOnCommaDevice": true,
@@ -479,13 +479,13 @@
               "type": "command_button",
               "command": "/data/openpilot/scripts/force_branch_update.sh bp-5.0-beta",
               "working_dir": "/data/openpilot",
-              "title": "Force Update to bp-5.0-beta",
-              "desc": "WARNING: This will clone a fresh copy of bp-5.0-beta and replace /data/openpilot. A reboot will be required after completion.",
-              "button_text": "Force Update",
+              "title": "强制更新到 bp-5.0-beta",
+              "desc": "警告：将下载全新 bp-5.0-beta 分支覆盖当前 /data/openpilot。更新完成后需要重启设备。",
+              "button_text": "强制更新",
               "confirm": true,
-              "confirm_text": "This will force update to bp-5.0-beta. Your device will need to reboot after the update completes. Continue?",
-              "confirm_button_text": "Yes, Force Update",
-              "cancel_button_text": "Cancel",
+              "confirm_text": "这将强制更新到 bp-5.0-beta，并替换当前 /data/openpilot。更新完成后需要重启设备。确定继续吗？",
+              "confirm_button_text": "是的，强制更新",
+              "cancel_button_text": "取消",
               "hidden": false,
               "OnlyOnCommaDevice": true,
               "conditions": {
@@ -498,60 +498,60 @@
       ]
     },
     {
-      "name": "Debug",
+      "name": "调试",
       "icon": "../assets/offroad/icon_debug.png",
       "groups": [
         {
           "groupName": "paramViewerGroup",
-          "title": "Parameter Viewer",
+          "title": "参数查看",
           "enableResetButton": false,
           "controls": [
             {
               "type": "param_list_viewer",
-              "title": "All Parameters",
-              "desc": "View all available parameters in the system",
+              "title": "所有参数",
+              "desc": "查看系统中所有参数及当前值。",
               "hidden": false
             },
             {
               "type": "param_viewer",
               "param": "LiveParameters",
-              "title": "Live Parameters",
-              "desc": "Displays live parameters"
+              "title": "实时校准参数",
+              "desc": "显示当前实时学习到的车辆特性参数（如转向比、轮胎刚度等）。"
             }
           ]
         },
         {
           "groupName": "debugPreferencesGroup",
-          "title": "Debug Preferences:",
+          "title": "调试选项",
           "enableResetButton": false,
           "keepScreenAwake": true,
           "controls": [
             {
               "type": "toggle",
               "param": "FordPrefEnableDebugLogs",
-              "title": "Enable Debug Logging",
-              "desc": "Enable this to collect more detailed logs for the route."
+              "title": "启用调试日志",
+              "desc": "记录更详细的调试日志以便排查问题（会略微增加存储占用）。"
             }
           ]
         }
       ]
     },
     {
-      "name": "Info",
+      "name": "信息",
       "icon": "../assets/offroad/icon_info.png",
       "groups": [
         {
           "groupName": "infoPreferencesGroup",
-          "title": "Info:",
+          "title": "信息",
           "enableResetButton": false,
           "keepScreenAwake": false,
           "controls": [
             {
               "type": "file_viewer",
               "path": "CHANGELOGS_BP.md",
-              "title": "BluePilot Changelog",
-              "desc": "View the latest changes and updates for BluePilot",
-              "header": "BluePilot Changelog"
+              "title": "BluePilot 更新日志",
+              "desc": "查看 BluePilot 的最新更新和改动记录。",
+              "header": "BluePilot 更新日志"
             }
           ]
         }
