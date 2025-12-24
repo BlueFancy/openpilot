@@ -22,26 +22,25 @@ class CarControllerParams:
   ACC_UI_STEP = 20      # ACCDATA_3, 5Hz
   BUTTONS_STEP = 5      # Steering_Data_FD1, 10Hz, but send twice as fast
 
-  CURVATURE_MAX = 0.03  # Max curvature for steering command, m^-1 (increased from 0.02 to allow more steering angle)
-  STEER_DRIVER_ALLOWANCE = 0.8  # Driver intervention threshold, Nm (reduced from 1.0 to 0.8 for faster driver override detection and quicker re-engagement)
+  CURVATURE_MAX = 0.02  # Max curvature for steering command, m^-1
+  STEER_DRIVER_ALLOWANCE = 1.0  # Driver intervention threshold, Nm
 
 
   # ANGLE_RATE_LIMIT_UP = AngleRateLimit(speed_bp=[5, 25], angle_v=[0.0006, 0.0004]) # windup limit
   # ANGLE_RATE_LIMIT_DOWN = AngleRateLimit(speed_bp=[5, 25], angle_v=[0.0006, 0.0006]) # unwind limit
   ANGLE_LIMITS: AngleSteeringLimits = AngleSteeringLimits(
-    0.03,  # Max curvature for steering command, m^-1 (increased from 0.02 to allow more steering angle)
+    0.02,  # Max curvature for steering command, m^-1
     # Curvature rate limits
     # Max curvature is limited by the EPS to an equivalent of ~2.0 m/s^2 at all speeds,
     #  however max curvature rate linearly decreases as speed increases:
     #  ~0.009 m^-1/sec at 7 m/s, ~0.002 m^-1/sec at 35 m/s
     # Limit to ~2 m/s^3 up, ~3.3 m/s^3 down at 75 mph and match EPS limit at low speed
-    # Increased rate limits to allow faster steering response (was [0.0026, 0.0013, 0.0001])
     # ([5, 16.0, 25], [0.00045, 0.00025, 0.00010]),
     # ([5, 16.0, 25], [0.00045, 0.00025, 0.00015])
-    ([5.0, 16.0, 25.0], [0.0045, 0.0030, 0.00030]),  # Up rate: increased to allow faster steering buildup
-    ([5.0, 16.0, 25.0], [0.0045, 0.0030, 0.00050])   # Down rate: increased to allow faster steering release
+    ([5, 16, 25], [0.0026, 0.0013, 0.0001]),
+    ([5, 16, 25], [0.0026, 0.0015, 0.0002])
   )
-  CURVATURE_ERROR = 0.002  # Increased from 0.002 to allow larger per-frame curvature changes (start with 0.004 for stability, can increase to 0.006 if snake-like roads need more aggressive response)
+  CURVATURE_ERROR = 0.002  # ~6 degrees at 10 m/s, ~10 degrees at 35 m/s
 
   ACCEL_MAX = 2.0               # m/s^2 max acceleration
   ACCEL_MIN = -3.5              # m/s^2 max deceleration
