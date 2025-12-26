@@ -136,7 +136,12 @@ class CarSpecificEvents:
       events.add(EventName.doorOpen)
     if CS.seatbeltUnlatched:
       events.add(EventName.seatbeltNotLatched)
-    if CS.gearShifter != GearShifter.drive and (extra_gears is None or
+    # Modified: Allow neutral gear to maintain lateral control
+    # Only park and reverse gears will trigger wrongGear event
+    # Neutral gear is allowed to keep openpilot active for lateral control
+    if CS.gearShifter == GearShifter.park:
+      events.add(EventName.wrongGear)
+    elif CS.gearShifter != GearShifter.drive and CS.gearShifter != GearShifter.neutral and (extra_gears is None or
        CS.gearShifter not in extra_gears):
       events.add(EventName.wrongGear)
     if CS.gearShifter == GearShifter.reverse:
