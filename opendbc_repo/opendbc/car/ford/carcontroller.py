@@ -120,7 +120,7 @@ class CarController(CarControllerBase):
     self.pc_blend_ratio_high_C_UI = 0.40 # Updated from UI: %-Predicted Curvature
     self.pc_blend_ratio_bp = [0.0, 0.001] # curvature breakpoints in 1/m
     self.large_curve_factor_low = 1.0 # factor to reduce curvature for small curves
-    self.large_curve_factor_high = 0.80 # factor to reduce curvature for large curves
+    self.large_curve_factor_high = 1.0 # factor to reduce curvature for large curves (changed from 0.80 to 1.0 to allow full curvature in large curves)
     self.large_curve_factor_bp = [0.001, 0.02] # curvature breakpoints in 1/m
     self.large_curve_factor_v = [self.large_curve_factor_low, self.large_curve_factor_high] #  determine factor to reduce cu
 
