@@ -175,7 +175,7 @@ class CarController(CarControllerBase):
     # max absolute values for all four signals
     self.path_angle_max = 0.5  # from dbc files
     self.path_offset_max = 2.0  # too much path offset causes issues
-    self.curvature_max = 0.02  # from dbc files
+    self.curvature_max = CarControllerParams.CURVATURE_MAX  # Use CarControllerParams value to support ~360° steering angle
     self.curvature_rate_max = 0.001023  # from dbc files
 
     # values from previous frame
