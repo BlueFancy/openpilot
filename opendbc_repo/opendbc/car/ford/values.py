@@ -22,26 +22,26 @@ class CarControllerParams:
   ACC_UI_STEP = 20      # ACCDATA_3, 5Hz
   BUTTONS_STEP = 5      # Steering_Data_FD1, 10Hz, but send twice as fast
 
-  CURVATURE_MAX = 0.02  # Max curvature for steering command, m^-1
+  CURVATURE_MAX = 0.04  # Max curvature for steering command, m^-1 (increased to support ~360° steering angle)
   STEER_DRIVER_ALLOWANCE = 1.0  # Driver intervention threshold, Nm
 
 
   # ANGLE_RATE_LIMIT_UP = AngleRateLimit(speed_bp=[5, 25], angle_v=[0.0006, 0.0004]) # windup limit
   # ANGLE_RATE_LIMIT_DOWN = AngleRateLimit(speed_bp=[5, 25], angle_v=[0.0006, 0.0006]) # unwind limit
   ANGLE_LIMITS: AngleSteeringLimits = AngleSteeringLimits(
-    0.03,  # Max curvature for steering command, m^-1 (increased from 0.02 to allow more steering angle)
+    0.04,  # Max curvature for steering command, m^-1 (increased from 0.03 to 0.04 to support ~360° steering angle)
     # Curvature rate limits
     # Max curvature is limited by the EPS to an equivalent of ~2.0 m/s^2 at all speeds,
     #  however max curvature rate linearly decreases as speed increases:
     #  ~0.009 m^-1/sec at 7 m/s, ~0.002 m^-1/sec at 35 m/s
     # Limit to ~2 m/s^3 up, ~3.3 m/s^3 down at 75 mph and match EPS limit at low speed
-    # Increased rate limits to allow faster steering angle changes
+    # Further increased rate limits to allow faster steering angle changes for 360° target
     # ([5, 16.0, 25], [0.00045, 0.00025, 0.00010]),
     # ([5, 16.0, 25], [0.00045, 0.00025, 0.00015])
-    ([5, 16, 25], [0.0045, 0.0030, 0.0003]),  # Increased up rate limits
-    ([5, 16, 25], [0.0045, 0.0030, 0.0005])   # Increased down rate limits
+    ([5, 16, 25], [0.0065, 0.0045, 0.0005]),  # Further increased up rate limits for 360° steering
+    ([5, 16, 25], [0.0065, 0.0045, 0.0008])   # Further increased down rate limits for 360° steering
   )
-  CURVATURE_ERROR = 0.003   # Increased from 0.002 to 0.01 to allow larger per-frame curvature changes (~6 degrees at 10 m/s, ~10 degrees at 35 m/s)
+  CURVATURE_ERROR = 0.001   # Increased to 0.003 to allow larger per-frame curvature changes for 360° steering (~6 degrees at 10 m/s, ~10 degrees at 35 m/s)
 
   ACCEL_MAX = 2.0               # m/s^2 max acceleration
   ACCEL_MIN = -3.5              # m/s^2 max deceleration
