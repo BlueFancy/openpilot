@@ -5,7 +5,8 @@ import json
 from dataclasses import dataclass, field, replace
 from enum import Enum, IntFlag
 
-from opendbc.car import AngleSteeringLimits, Bus, CarSpecs, DbcDict, PlatformConfig, Platforms, uds
+from opendbc.car import Bus, CarSpecs, DbcDict, PlatformConfig, Platforms, uds
+from opendbc.car.lateral import AngleSteeringLimits
 from opendbc.car.structs import CarParams
 from opendbc.car.docs_definitions import CarFootnote, CarHarness, CarDocs, CarParts, Column, \
                                                      Device
@@ -22,26 +23,25 @@ class CarControllerParams:
   ACC_UI_STEP = 20      # ACCDATA_3, 5Hz
   BUTTONS_STEP = 5      # Steering_Data_FD1, 10Hz, but send twice as fast
 
-  CURVATURE_MAX = 0.04  # Max curvature for steering command, m^-1 (increased to support ~360° steering angle)
+  CURVATURE_MAX = 0.02  # Max curvature for steering command, m^-1
   STEER_DRIVER_ALLOWANCE = 1.0  # Driver intervention threshold, Nm
 
 
   # ANGLE_RATE_LIMIT_UP = AngleRateLimit(speed_bp=[5, 25], angle_v=[0.0006, 0.0004]) # windup limit
   # ANGLE_RATE_LIMIT_DOWN = AngleRateLimit(speed_bp=[5, 25], angle_v=[0.0006, 0.0006]) # unwind limit
   ANGLE_LIMITS: AngleSteeringLimits = AngleSteeringLimits(
-    0.04,  # Max curvature for steering command, m^-1 (increased from 0.03 to 0.04 to support ~360° steering angle)
+    0.02,  # Max curvature for steering command, m^-1
     # Curvature rate limits
     # Max curvature is limited by the EPS to an equivalent of ~2.0 m/s^2 at all speeds,
     #  however max curvature rate linearly decreases as speed increases:
     #  ~0.009 m^-1/sec at 7 m/s, ~0.002 m^-1/sec at 35 m/s
     # Limit to ~2 m/s^3 up, ~3.3 m/s^3 down at 75 mph and match EPS limit at low speed
-    # Further increased rate limits to allow faster steering angle changes for 360° target
     # ([5, 16.0, 25], [0.00045, 0.00025, 0.00010]),
     # ([5, 16.0, 25], [0.00045, 0.00025, 0.00015])
-    ([5, 16, 25], [0.0065, 0.0045, 0.0005]),  # Further increased up rate limits for 360° steering
-    ([5, 16, 25], [0.0065, 0.0045, 0.0008])   # Further increased down rate limits for 360° steering
+    ([5, 16, 25], [0.0025, 0.0012, 0.00008]),
+    ([5, 16, 25], [0.0025, 0.0014, 0.00018])
   )
-  CURVATURE_ERROR = 0.001   # Increased to 0.003 to allow larger per-frame curvature changes for 360° steering (~6 degrees at 10 m/s, ~10 degrees at 35 m/s)
+  CURVATURE_ERROR = 0.002  # ~6 degrees at 10 m/s, ~10 degrees at 35 m/s
 
   ACCEL_MAX = 2.0               # m/s^2 max acceleration
   ACCEL_MIN = -3.5              # m/s^2 max deceleration
@@ -96,7 +96,7 @@ class FordCarDocs(CarDocs):
       CAR.FORD_MAVERICK_MK1,
       CAR.FORD_F_150_MK14,
       CAR.FORD_F_150_LIGHTNING_MK1,
-      CAR.FORD_ESCAPE_MK5,
+      CAR.FORD_ESCAPE_MK4_5,
       CAR.FORD_MUSTANG_MACH_E_MK1,
       CAR.FORD_RANGER_MK2,
     ):
@@ -109,6 +109,7 @@ class FordCarDocs(CarDocs):
 
     if CP.carFingerprint in (CAR.FORD_F_150_MK14, CAR.FORD_F_150_LIGHTNING_MK1, CAR.FORD_EXPEDITION_MK4):
       self.setup_video = "https://www.youtube.com/watch?v=MewJc9LYp9M"
+
 
 @dataclass
 class FordPlatformConfig(PlatformConfig):
@@ -131,12 +132,13 @@ class FordPlatformConfig(PlatformConfig):
 class FordCANFDPlatformConfig(FordPlatformConfig):
   dbc_dict: DbcDict = field(default_factory=lambda: {
     Bus.pt: 'ford_lincoln_base_pt',
-    Bus.radar: RADAR.DELPHI_MRR_64,
+    Bus.radar: RADAR.STEER_ASSIST_DATA,
   })
 
   def init(self):
     super().init()
     self.flags |= FordFlags.CANFD
+
 
 @dataclass
 class FordF150LightningPlatform(FordCANFDPlatformConfig):
@@ -164,9 +166,9 @@ class CAR(Platforms):
     ],
     CarSpecs(mass=1750, wheelbase=2.71, steerRatio=16.7),
   )
-  FORD_ESCAPE_MK5 = FordCANFDPlatformConfig(
+  FORD_ESCAPE_MK4_5 = FordCANFDPlatformConfig(
     [
-      FordCarDocs("Ford Escape 2023-24", hybrid=True, plug_in_hybrid=True),
+      FordCarDocs("Ford Escape 2023-24", hybrid=True, plug_in_hybrid=True, setup_video="https://www.youtube.com/watch?v=M6uXf4b2SHM"),
       FordCarDocs("Ford Kuga Hybrid 2024", "All"),
       FordCarDocs("Ford Kuga Plug-in Hybrid 2024", "All"),
     ],
