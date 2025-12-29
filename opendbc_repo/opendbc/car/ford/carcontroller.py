@@ -4,8 +4,9 @@ import numpy as np
 from numpy import clip, interp
 from collections import deque
 from common.filter_simple import FirstOrderFilter
-from opendbc.can.packer import CANPacker
-from opendbc.car import ACCELERATION_DUE_TO_GRAVITY, Bus, DT_CTRL, apply_std_steer_angle_limits, structs
+from opendbc.can import CANPacker
+from opendbc.car import ACCELERATION_DUE_TO_GRAVITY, Bus, DT_CTRL, apply_hysteresis, structs
+from opendbc.car.lateral import ISO_LATERAL_ACCEL, apply_std_steer_angle_limits
 from opendbc.car.vehicle_model import VehicleModel
 from opendbc.car.ford import fordcan
 from opendbc.car.ford.values import CarControllerParams, FordFlags, CAR
@@ -16,6 +17,7 @@ from common.pid import PIDController # PID control of lateral
 from bluepilot.params.bp_params import load_custom_params, update_custom_params  # Import custom param functions
 from opendbc.car.ford.helpers import compute_dm_msg_values
 from bluepilot.logger.bp_logger import debug, info, warning, error, critical
+from opendbc.sunnypilot.car.ford.icbm import IntelligentCruiseButtonManagementInterface
 
 
 LongCtrlState = structs.CarControl.Actuators.LongControlState
@@ -36,6 +38,21 @@ MAX_LATERAL_ACCEL = ISO_LATERAL_ACCEL - (EARTH_G * AVERAGE_ROAD_ROLL)  # ~2.4 m/
 CONTROL_N = 17
 IDX_N = 33
 T_IDXS = [index_function(idx, max_val=10.0) for idx in range(IDX_N)]
+
+def anti_overshoot(apply_curvature, apply_curvature_last, v_ego):
+  diff = 0.1
+  tau = 5  # 5s smooths over the overshoot
+  dt = DT_CTRL * CarControllerParams.STEER_STEP
+  alpha = 1 - np.exp(-dt / tau)
+
+  lataccel = apply_curvature * (v_ego ** 2)
+  last_lataccel = apply_curvature_last * (v_ego ** 2)
+  last_lataccel = apply_hysteresis(lataccel, last_lataccel, diff)
+  last_lataccel = alpha * lataccel + (1 - alpha) * last_lataccel
+
+  output_curvature = last_lataccel / (max(v_ego, 1) ** 2)
+
+  return float(np.interp(v_ego, [5, 10], [apply_curvature, output_curvature]))
 
 
 def apply_ford_curvature_limits(apply_curvature, apply_curvature_last, current_curvature, v_ego_raw, steering_angle, lat_active, CP):
@@ -64,15 +81,15 @@ def apply_creep_compensation(accel: float, v_ego: float) -> float:
   return float(accel)
 
 
-class CarController(CarControllerBase):
+class CarController(CarControllerBase, IntelligentCruiseButtonManagementInterface):
   def __init__(self, dbc_names, CP, CP_SP):
-    super().__init__(dbc_names, CP, CP_SP)
+    CarControllerBase.__init__(self, dbc_names, CP, CP_SP)
+    IntelligentCruiseButtonManagementInterface.__init__(self, CP, CP_SP)
 
     self.params = Params()
 
     self.packer = CANPacker(dbc_names[Bus.pt])
     self.CAN = fordcan.CanBus(CP)
-
 
     # Load initial custom parameters from params.json
     load_custom_params(self, "carcontroller")
@@ -93,12 +110,15 @@ class CarController(CarControllerBase):
     self.distance_bar_frame = 0
     self.accel_pitch_compensated = 0.0
     self.steering_wheel_delta_adjusted = 0.0
+    self.last_button_frame = 0  # Track last ICBM button press frame
 
    ################################## lateral control parameters ##############################################
 
     # Variables to initialize (these get updated every scan as part of the control code)
     self.precision_type = 1  # precise or comfort
     self.human_turn = False  # have we detected a human override in a turn
+    self.post_reset_ramp_active = False  # track if we're ramping after a steering reset
+    self.reset_steering_last = False  # track previous reset_steering state
     self.enable_lane_positioning = False # Updated from UI: enable Advanced Lane Positioning
     self.enable_high_curvature_mode = False # Updated from UI: enable High Curvature Mode
     self.custom_profile = 0 # updated from UI
@@ -106,6 +126,8 @@ class CarController(CarControllerBase):
     self.steer_warning = False # warning for steering limits exceeded
     self.steer_warning_count = 0 # count how many cycles the warning has existed
     self.steering_limited = 0 # count how many cycles the steering was limited
+    self.disable_BP_lat_UI = False # updated from UI: disable BP lateral control
+    self.anti_overshoot_curvature_last = 0.0 # initialize anti_overshoot_curvature_last
 
     # Curvature variables
     self.curvature_lookup_time = 0.42 #from lagd
@@ -120,7 +142,7 @@ class CarController(CarControllerBase):
     self.pc_blend_ratio_high_C_UI = 0.40 # Updated from UI: %-Predicted Curvature
     self.pc_blend_ratio_bp = [0.0, 0.001] # curvature breakpoints in 1/m
     self.large_curve_factor_low = 1.0 # factor to reduce curvature for small curves
-    self.large_curve_factor_high = 1.0 # factor to reduce curvature for large curves (changed from 0.80 to 1.0 to allow full curvature in large curves)
+    self.large_curve_factor_high = 0.80 # factor to reduce curvature for large curves
     self.large_curve_factor_bp = [0.001, 0.02] # curvature breakpoints in 1/m
     self.large_curve_factor_v = [self.large_curve_factor_low, self.large_curve_factor_high] #  determine factor to reduce cu
 
@@ -175,7 +197,7 @@ class CarController(CarControllerBase):
     # max absolute values for all four signals
     self.path_angle_max = 0.5  # from dbc files
     self.path_offset_max = 2.0  # too much path offset causes issues
-    self.curvature_max = CarControllerParams.CURVATURE_MAX  # Use CarControllerParams value to support ~360° steering angle
+    self.curvature_max = 0.0115  # 0.02 is max from dbc files, but more than 0.012 can cause windup in big curves
     self.curvature_rate_max = 0.001023  # from dbc files
 
     # values from previous frame
@@ -183,7 +205,6 @@ class CarController(CarControllerBase):
     self.path_offset_last = 0.0
     self.path_angle_last = 0.0
     self.curvature_rate = 0  # initialize curvature_rate
-
 
     # Logging variables
     debug(f'Car Fingerprint (CarController): {CP.carFingerprint}', True)
@@ -217,6 +238,7 @@ class CarController(CarControllerBase):
     self.tja_warn = 0
     self.hands = 0
     self.predictedSteeringAngleDeg_SP = 0.0
+
 
   def handle_post_lane_change_transition(self, path_angle, path_offset, desired_curvature_rate):
     """
@@ -333,6 +355,12 @@ class CarController(CarControllerBase):
     elif CS.acc_tja_status_stock_values["Tja_D_Stat"] != 0 and (self.frame % CarControllerParams.ACC_UI_STEP) == 0:
       can_sends.append(fordcan.create_button_msg(self.packer, self.CAN.camera, CS.buttons_stock_values, tja_toggle=True))
 
+    # Intelligent Cruise Button Management (ICBM)
+    icbm_can_sends, self.last_button_frame = IntelligentCruiseButtonManagementInterface.update(
+      self, CC_SP, CS, self.packer, self.CAN, self.frame, self.last_button_frame
+    )
+    can_sends.extend(icbm_can_sends)
+
     ### lateral control ###
 
     apply_curvature = 0.0 # initialize apply_curvature
@@ -348,7 +376,6 @@ class CarController(CarControllerBase):
         self.precision_type = 1
         steeringPressed = CS.out.steeringPressed
         steeringAngleDeg_PV = CS.out.steeringAngleDeg
-        steeringAngleDeg_SP = actuators.steeringAngleDeg
 
         # determine tuning profile
         if self.custom_profile == 1: # custom tuning profile
@@ -359,7 +386,7 @@ class CarController(CarControllerBase):
         elif self.CP.flags & FordFlags.CANFD:
           self.pc_blend_ratio_low_C = self.pc_blend_ratio_low_C_CANFD
           self.pc_blend_ratio_high_C = self.pc_blend_ratio_high_C_CANFD
-          if (self.CP.carFingerprint == CAR.FORD_ESCAPE_MK5 or self.CP.carFingerprint == CAR.FORD_MUSTANG_MACH_E_MK1):
+          if (self.CP.carFingerprint == CAR.FORD_ESCAPE_MK4_5 or self.CP.carFingerprint == CAR.FORD_MUSTANG_MACH_E_MK1):
             self.LC_PID_gain = self.LC_PID_GAIN_CANFD_SMALL_VEHICLE
           else:
             self.LC_PID_gain = self.LC_PID_GAIN_CANFD_LARGE_VEHICLE
@@ -380,7 +407,6 @@ class CarController(CarControllerBase):
           curvatures = np.array(self.model.orientationRate.z) / max(0.01, CS.out.vEgoRaw)
           predicted_steering_angle_curvature = interp(self.wheel_angle_lookup_time, ModelConstants.T_IDXS, curvatures)
           predicted_curvature = interp(self.curvature_lookup_time, ModelConstants.T_IDXS, curvatures)
-          max_abs_predicted_curvature = max(np.abs(curvatures[:17]))  # max curvature magnitude over next 2.5s
         else:
           predicted_curvature = 0.0
 
@@ -420,6 +446,23 @@ class CarController(CarControllerBase):
 
           self.precision_type = 0 # use comfort mode
 
+        # Determine if a human is making a turn and trap the value
+        # if a human turn is active, reset steering to prevent windup
+        if steeringPressed and abs(steeringAngleDeg_PV) > 45:
+          self.human_turn = True
+        else:
+          self.human_turn = False
+
+        # Determine when to reset steering
+        if ((self.human_turn) and self.enable_human_turn_detection) or (CS.out.vEgoRaw < 0.1):
+          reset_steering = 1
+        else:
+          reset_steering = 0
+
+        #if reset_steering is 1, set requested_curvature to 0
+        if reset_steering == 1:
+          requested_curvature = 0.0
+
         # apply curvature limits
         apply_curvature = apply_ford_curvature_limits(requested_curvature,
                                                                 self.apply_curvature_last,
@@ -429,6 +472,35 @@ class CarController(CarControllerBase):
                                                                 CC.latActive,
                                                                 self.CP)
 
+        #if reset_steering is 1, set apply_curvature to 0
+        if reset_steering == 1:
+          apply_curvature = 0.0
+          self.post_reset_ramp_active = False  # Cancel any active ramp when resetting
+        else:
+          # Detect transition from reset to normal (reset_steering goes from 1 to 0)
+          if self.reset_steering_last and not reset_steering:
+            # Just came out of reset, start post-reset ramp
+            self.post_reset_ramp_active = True
+            self.apply_curvature_last = 0.0  # Reset to ensure clean ramp from 0
+
+        # Post-reset ramp logic: gradually ramp from 0 to requested curvature
+        # Keep path_angle = 0 during ramp to maintain bypass in ford.h
+        if self.post_reset_ramp_active:
+          # Use rate limits to gradually ramp up from 0 towards requested_curvature
+          # This prevents blocked messages when transitioning out of reset
+          apply_curvature = apply_std_steer_angle_limits(requested_curvature, self.apply_curvature_last,
+                                                         CS.out.vEgoRaw, 0, CC.latActive, CarControllerParams.ANGLE_LIMITS)
+
+          # Check if we've ramped close enough to requested curvature (within 10% or 0.001, whichever is larger)
+          curvature_error = abs(requested_curvature - apply_curvature)
+          curvature_threshold = max(abs(requested_curvature) * 0.1, 0.001)
+
+          if curvature_error < curvature_threshold:
+            # Ramp complete, exit post-reset mode
+            self.post_reset_ramp_active = False
+
+        # Update reset_steering_last for next frame
+        self.reset_steering_last = (reset_steering == 1)
 
         # detect if steering was limited (lanes changes always trigger, but complete just fine)
         if (requested_curvature != apply_curvature) and (not steeringPressed) and (not self.lane_change):
@@ -481,12 +553,6 @@ class CarController(CarControllerBase):
         if self.lane_change:
           desired_curvature_rate = 0.0
 
-        # Determine if a human is making a turn and trap the value
-        if steeringPressed and abs(steeringAngleDeg_PV) > 45:
-          self.human_turn = True
-        else:
-          self.human_turn = False
-
         # get path offset from model.position.y
         path_offset_position = interp(self.path_offset_lookup_time, ModelConstants.T_IDXS, self.model.position.y)
 
@@ -532,6 +598,11 @@ class CarController(CarControllerBase):
         if not self.enable_lane_positioning:
           path_angle_low_c = 0.0
 
+        # reset path angle if steering reset is active
+        # During post-reset ramp, path_angle can ramp normally (latch in ford.h handles bypass)
+        if reset_steering == 1:
+          path_angle_low_c = 0.0
+
         # rate limit path_angle_low_c for comfort
         path_angle_roc = interp(abs(CS.out.vEgoRaw), self.LC_path_angle_ROC_bp, self.LC_path_angle_ROC_v)
         path_angle_low_c = clip(path_angle_low_c, self.path_angle_last - path_angle_roc, self.path_angle_last + path_angle_roc)
@@ -544,53 +615,21 @@ class CarController(CarControllerBase):
         if self.LC_path_angle_reset_counter > self.LC_path_angle_reset_duration * 20: #20 scans per second
           self.LC_PID_controller.reset()
 
-        # path_angle is a corrective variable, so subtract out current wheel position (associated with curvature)
-        # calculate how far the steering wheel is from the desired steering wheel angle
-        steering_wheel_delta = (steeringAngleDeg_PV - self.predictedSteeringAngleDeg_SP) * self.path_angle_wheel_angle_conversion
-
-        # calculate path angle for high curvature situations:
-        # interpolate path_angle_factor based on curvature
-        HC_PID_curvature_factor = interp(max_abs_predicted_curvature, self.HC_PID_curvature_bp, self.HC_PID_curvature_v)
-
-        # interpolate path_angle_speed_factor based on speed
-        HC_PID_speed_factor = interp(CS.out.vEgoRaw, self.HC_PID_speed_bp, self.HC_PID_speed_v)
-
-        # choose which path_angle factor to use (curvature or speed)
-        HC_PID_adjust_factor = min(HC_PID_curvature_factor, HC_PID_speed_factor)
-
-        # apply the adjustment factor to the steering_wheel_delta before executing the PID
-        self.steering_wheel_delta_adjusted = steering_wheel_delta * HC_PID_adjust_factor * self.HC_PID_gain_UI
-
-        # if not using high curvature mode, zero out steering_wheel_delta_adjusted
-        if not self.enable_high_curvature_mode:
-          self.steering_wheel_delta_adjusted = 0.0
-
-        # use PID to calcualte path_angle, gain is interpolated based on curvature (default is speed)
-        path_angle_high_c = self.HC_PID_controller.update((self.steering_wheel_delta_adjusted))
-
-        # if not using high curvature mode, zero out path_angle_high_c (should be zeroed out in the PID controller, but just in case)
-        if not self.enable_high_curvature_mode:
-          path_angle_high_c = 0.0
+        # path_angle_high_c is not used in the current implementation
+        path_angle_high_c = 0.0
 
         # sum path_angle_low_c and path_angle_high_c
         path_angle = path_angle_low_c + path_angle_high_c
-
-        # zero path_angle during lane changes
-        if self.lane_change:
-          path_angle = 0.0
-
-        # if the path_angle signal is zerod out by the factors, reset the PID controller
-        if HC_PID_adjust_factor < 0.1:
-          self.HC_PID_controller.reset()
-
-        # rate limit path_angle
-        # path_angle_roc = interp(abs(CS.out.vEgoRaw), [5, 25], [0.003, 0.002])
-        # path_angle = clip(path_angle, self.path_angle_last - path_angle_roc, self.path_angle_last + path_angle_roc)
 
         # Apply post lane change transition logic
         path_angle, path_offset, desired_curvature_rate = self.handle_post_lane_change_transition(
             path_angle, path_offset, desired_curvature_rate
         )
+
+        # reset path angle if steering reset is active
+        # During post-reset ramp, path_angle can ramp normally (latch in ford.h handles bypass)
+        if reset_steering == 1:
+          path_angle = 0.0
 
         # clip all values to max.
         apply_curvature = clip(apply_curvature, -self.curvature_max, self.curvature_max)
@@ -602,25 +641,26 @@ class CarController(CarControllerBase):
         # if path_offset and path_angle disagree, it can result in a very uncomortable ride, since path_angle is so strong, zero out path_offset signal before it is sent over canbus
         path_offset = 0.0
 
-        # Determine if a human is making a turn and trap the value
-        # if a human turn is active, reset steering to prevent windup
-        if steeringPressed and abs(steeringAngleDeg_PV) > 45:
-          self.human_turn = True
-        else:
-          self.human_turn = False
-
-        # Determine when to reset steering
-        if ((self.human_turn) and self.enable_human_turn_detection) or (CS.out.vEgoRaw < 0.1):
-          reset_steering = 1
-        else:
+        if self.disable_BP_lat_UI:
           reset_steering = 0
-
-        # reset steering by setting all values to 0 and ramp_type to immediate
-        if reset_steering == 1:
-          apply_curvature = 0
           path_offset = 0
           path_angle = 0
           desired_curvature_rate = 0
+          ramp_type = 1
+
+          self.anti_overshoot_curvature_last = anti_overshoot(desired_curvature, self.anti_overshoot_curvature_last, CS.out.vEgoRaw)
+          apply_curvature = self.anti_overshoot_curvature_last
+
+          current_curvature = -CS.out.yawRate / max(CS.out.vEgoRaw, 0.1)
+
+          self.apply_curvature_last = apply_ford_curvature_limits(apply_curvature, self.apply_curvature_last, current_curvature,
+                                                              CS.out.vEgoRaw, 0., CC.latActive, self.CP)
+
+          #rem bluepilot sends apply_curvature, and at some point openpilot swapped to sending apply_curvature_last.
+          apply_curvature = self.apply_curvature_last
+
+        # reset steering by setting all values to 0 and ramp_type to immediate
+        if reset_steering == 1:
           ramp_type = 3
           self.path_angle_deque.clear()
           self.HC_PID_controller.reset()
