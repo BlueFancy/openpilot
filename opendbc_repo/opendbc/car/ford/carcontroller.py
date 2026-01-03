@@ -42,8 +42,25 @@ T_IDXS = [index_function(idx, max_val=10.0) for idx in range(IDX_N)]
 def apply_ford_curvature_limits(apply_curvature, apply_curvature_last, current_curvature, v_ego_raw, steering_angle, lat_active, CP):
   # No blending at low speed due to lack of torque wind-up and inaccurate current curvature
   if v_ego_raw > 9:
-    apply_curvature = np.clip(apply_curvature, current_curvature - CarControllerParams.CURVATURE_ERROR,
-                              current_curvature + CarControllerParams.CURVATURE_ERROR)
+    # NOTE:
+    # Ford Q3 (non-CANFD) can feel like it "waits" to start turning because we clamp the
+    # requested curvature close to the measured curvature (derived from yawRate). On a
+    # straight road, measured curvature stays near 0 until the car actually begins turning,
+    # so a tight clamp forces the command to "slowly creep" into the turn.
+    #
+    # To keep straight-line stability, we still clamp tightly when the request is small,
+    # but we *dynamically widen* the allowed error window as the requested curvature grows.
+    # This improves turn-in responsiveness without making straight driving oscillatory.
+    req_curv_mag = abs(apply_curvature)
+    extra_err = float(np.interp(req_curv_mag,
+                                # curvature [1/m]
+                                [0.0, 0.004, 0.010, 0.020],
+                                # additional allowed error [1/m]
+                                [0.0, 0.0015, 0.0035, 0.0060]))
+    curvature_err = CarControllerParams.CURVATURE_ERROR + extra_err
+    apply_curvature = np.clip(apply_curvature,
+                              current_curvature - curvature_err,
+                              current_curvature + curvature_err)
 
   # Curvature rate limit after driver torque limit
   apply_curvature = apply_std_steer_angle_limits(apply_curvature, apply_curvature_last, v_ego_raw, steering_angle, lat_active, CarControllerParams.ANGLE_LIMITS)
