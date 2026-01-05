@@ -1,17 +1,17 @@
 {
-  "menuName": "Developer",
+  "menuName": "开发者",
   "menuIcon": "../assets/icons/shell.png",
-  "menuDescription": "Developer settings and tools",
+  "menuDescription": "开发者设置和工具",
   "groups": [
     {
       "groupName": "coreDevGroup",
-      "title": "Core Developer Tools",
+      "title": "核心开发者工具",
       "controls": [
         {
           "type": "toggle",
           "param": "AdbEnabled",
-          "title": "Enable ADB",
-          "desc": "ADB (Android Debug Bridge) allows connecting to your device over USB or over the network. See https://docs.comma.ai/how-to/connect-to-comma for more info.",
+          "title": "启用ADB",
+          "desc": "ADB（Android调试桥）允许通过USB或网络连接到您的设备。更多信息请参见 https://docs.comma.ai/how-to/connect-to-comma。",
           "icon": "../assets/icons/shell.png",
           "enableConditions": {
             "allConditionsTrue": [{ "isOffroad": true }]
@@ -20,8 +20,8 @@
         {
           "type": "toggle",
           "param": "SshEnabled",
-          "title": "Enable SSH",
-          "desc": "Enable SSH access to your device",
+          "title": "启用SSH",
+          "desc": "启用对您设备的SSH访问",
           "icon": "../assets/icons/shell.png",
           "enableConditions": {
             "allConditionsTrue": [{ "isOffroad": true }]
@@ -29,9 +29,9 @@
         },
         {
           "type": "command_button",
-          "title": "SSH Keys",
-          "desc": "Add your GitHub username to enable SSH access. It will fetch your public keys from GitHub.",
-          "button_text": "ADD",
+          "title": "SSH密钥",
+          "desc": "添加您的GitHub用户名以启用SSH访问。它将从GitHub获取您的公钥。",
+          "button_text": "添加",
           "action": "manage_ssh_keys",
           "icon": "../assets/icons/shell.png",
           "visibleConditions": {
@@ -45,13 +45,13 @@
     },
     {
       "groupName": "debugModesGroup",
-      "title": "Debug Modes",
+      "title": "调试模式",
       "controls": [
         {
           "type": "toggle",
           "param": "JoystickDebugMode",
-          "title": "Joystick Debug Mode",
-          "desc": "Enable joystick debug mode for testing",
+          "title": "摇杆调试模式",
+          "desc": "启用摇杆调试模式以进行测试",
           "icon": "../assets/icons/shell.png",
           "visibleConditions": {
             "allConditionsTrue": [{ "isReleaseBranch": false }]
@@ -65,18 +65,18 @@
         {
           "type": "toggle",
           "param": "LongitudinalManeuverMode",
-          "title": "Longitudinal Maneuver Mode",
-          "desc": "Enable longitudinal maneuver mode for testing",
+          "title": "纵向操作模式",
+          "desc": "启用纵向操作模式以进行测试",
           "icon": "../assets/icons/shell.png",
           "visibleConditions": {
             "allConditionsTrue": [{ "isReleaseBranch": false }]
           },
           "enableConditions": {
             "allConditionsTrue": [
-              { "isOffroad": true, "reason": "Requires offroad" },
+              { "isOffroad": true, "reason": "需要离线状态" },
               {
                 "hasLongitudinalControl": true,
-                "reason": "Requires longitudinal control"
+                "reason": "需要纵向控制"
               }
             ]
           }
@@ -85,24 +85,24 @@
     },
     {
       "groupName": "alphaLongitudinalGroup",
-      "title": "Experimental Features",
+      "title": "实验功能",
       "controls": [
         {
           "type": "toggle",
           "param": "AlphaLongitudinalEnabled",
-          "title": "openpilot Longitudinal Control (Alpha)",
-          "desc": "<b>WARNING: openpilot longitudinal control is in alpha for this car and will disable Automatic Emergency Braking (AEB).</b><br><br>On this car, sunnypilot defaults to the car's built-in ACC instead of openpilot's longitudinal control. Enable this to switch to openpilot longitudinal control. Enabling Experimental mode is recommended when enabling openpilot longitudinal control alpha.",
+          "title": "openpilot纵向控制 (Alpha)",
+          "desc": "<b>警告：openpilot纵向控制对此车辆处于alpha阶段，将禁用自动紧急制动（AEB）。</b><br><br>在此车辆上，sunnypilot默认使用车辆内置的ACC而不是openpilot的纵向控制。启用此选项可切换到openpilot纵向控制。启用openpilot纵向控制alpha时，建议启用实验模式。",
           "icon": "../assets/icons/speed_limit.png",
           "confirmation": true,
           "enableConditions": {
             "allConditionsTrue": [
               {
                 "isReleaseBranch": false,
-                "reason": "Not available on release branches"
+                "reason": "在发布分支上不可用"
               },
               {
                 "hasAlphaLongitudinalAvailable": true,
-                "reason": "Requires alpha longitudinal to be available"
+                "reason": "需要alpha纵向控制可用"
               }
             ]
           }
@@ -111,20 +111,20 @@
     },
     {
       "groupName": "sunnypilotDevGroup",
-      "title": "sunnypilot Developer Tools",
+      "title": "sunnypilot开发者工具",
       "controls": [
         {
           "type": "toggle",
           "param": "ShowAdvancedControls",
-          "title": "Show Advanced Controls",
-          "desc": "Toggle visibility of advanced sunnypilot controls.\nThis only toggles the visibility of the controls; it does not toggle the actual control enabled/disabled state.",
+          "title": "显示高级控制",
+          "desc": "切换高级sunnypilot控制的可见性。\n这只会切换控制的可见性；它不会切换实际控制的启用/禁用状态。",
           "icon": "../assets/icons/shell.png"
         },
         {
           "type": "toggle",
           "param": "EnableGithubRunner",
-          "title": "Enable GitHub runner service",
-          "desc": "Enables or disables the github runner service.",
+          "title": "启用GitHub运行器服务",
+          "desc": "启用或禁用GitHub运行器服务。",
           "icon": "../assets/icons/shell.png",
           "visibleConditions": {
             "allConditionsTrue": [{ "isReleaseBranch": false }]
@@ -133,15 +133,15 @@
         {
           "type": "toggle",
           "param": "EnableCopyparty",
-          "title": "Enable Copyparty service",
-          "desc": "Copyparty is a very capable file server, you can use it to download your routes, view your logs and even make some edits on some files from your browser. Requires you to connect to your comma locally via it's IP.",
+          "title": "启用Copyparty服务",
+          "desc": "Copyparty是一个非常强大的文件服务器，您可以使用它下载您的路线、查看日志，甚至从浏览器编辑一些文件。需要通过IP地址本地连接到您的comma设备。",
           "icon": "../assets/icons/network.png"
         },
         {
           "type": "command_button",
-          "title": "Copyparty Password",
-          "desc": "Set a password to secure access to your Copyparty file server. Leave empty for no password protection. Reboot required to apply changes.",
-          "button_text": "SET",
+          "title": "Copyparty密码",
+          "desc": "设置密码以保护对Copyparty文件服务器的访问。留空则不使用密码保护。需要重启以应用更改。",
+          "button_text": "设置",
           "action": "set_copyparty_password",
           "icon": "../assets/icons/network.png",
           "visibleConditions": {
@@ -155,13 +155,13 @@
         {
           "type": "toggle",
           "param": "QuickBootToggle",
-          "title": "Enable Quickboot Mode",
-          "desc": "When toggled on, this creates a prebuilt file to allow accelerated boot times. When toggled off, it immediately removes the prebuilt file so compilation of locally edited cpp files can be made. <br><br><b>To edit C++ files locally on device, you MUST first turn off this toggle so the changes can recompile.</b>",
+          "title": "启用快速启动模式",
+          "desc": "启用时，这将创建一个预构建文件以允许加速启动时间。禁用时，它会立即删除预构建文件，以便可以编译本地编辑的cpp文件。<br><br><b>要在设备上本地编辑C++文件，您必须先关闭此开关，以便可以重新编译更改。</b>",
           "icon": "../assets/icons/shell.png",
           "dynamic_desc": true,
           "descriptions": {
-            "needs_disable_updates": "Quickboot mode requires updates to be disabled.<br>Enable 'Disable Updates' in the Software panel first.",
-            "enabled": "When toggled on, this creates a prebuilt file to allow accelerated boot times. When toggled off, it immediately removes the prebuilt file so compilation of locally edited cpp files can be made. <br><br><b>To edit C++ files locally on device, you MUST first turn off this toggle so the changes can recompile.</b>"
+            "needs_disable_updates": "快速启动模式需要禁用更新。<br>请先在软件面板中启用"禁用更新"。",
+            "enabled": "启用时，这将创建一个预构建文件以允许加速启动时间。禁用时，它会立即删除预构建文件，以便可以编译本地编辑的cpp文件。<br><br><b>要在设备上本地编辑C++文件，您必须先关闭此开关，以便可以重新编译更改。</b>"
           },
           "description_conditions": {
             "needs_disable_updates": {
@@ -179,16 +179,16 @@
             "allConditionsTrue": [
               {
                 "paramIsTrue": "DisableUpdates",
-                "reason": "Requires DisableUpdates in the Software panel"
+                "reason": "需要在软件面板中禁用更新"
               }
             ]
           }
         },
         {
           "type": "command_button",
-          "title": "Error Log",
-          "desc": "View the error log for sunnypilot crashes.",
-          "button_text": "VIEW",
+          "title": "错误日志",
+          "desc": "查看sunnypilot崩溃的错误日志。",
+          "button_text": "查看",
           "action": "view_error_log",
           "icon": "../assets/icons/shell.png"
         }
@@ -196,26 +196,26 @@
     },
     {
       "groupName": "paramViewerGroup",
-      "title": "Parameters and Logs",
+      "title": "参数和日志",
       "enableResetButton": false,
       "controls": [
         {
           "type": "param_list_viewer",
-          "title": "All Parameters",
-          "desc": "View all available parameters in the system",
+          "title": "所有参数",
+          "desc": "查看系统中所有可用参数",
           "hidden": false
         },
         {
           "type": "param_viewer",
           "param": "LiveParameters",
-          "title": "Live Parameters",
-          "desc": "Displays live parameters"
+          "title": "实时参数",
+          "desc": "显示实时参数"
         },
         {
           "type": "toggle",
           "param": "FordPrefEnableDebugLogs",
-          "title": "Enable Debug Logging",
-          "desc": "[BLUEPILOT] Enable this to collect more detailed logs for the route.",
+          "title": "启用调试日志",
+          "desc": "[BLUEPILOT] 启用此选项以收集更详细的路线日志。",
           "icon": "../assets/icons/shell.png",
           "hidden": false
         }
@@ -223,29 +223,29 @@
     },
     {
       "groupName": "utilityCommandsGroup",
-      "title": "Utility Commands",
+      "title": "实用命令",
       "enableResetButton": false,
       "controls": [
         {
           "type": "command_button",
           "command": "echo \"Starting process...\" && for i in {1..5}; do echo \"[$(date '+%H:%M:%S')] Processing batch $i/5...\"; sleep 1; echo \"  -> Completed subtask $i\"; sleep 1; done && echo \"All tasks completed successfully!\"",
           "working_dir": "/data/openpilot",
-          "title": "Test Command",
-          "desc": "Test Command",
-          "button_text": "Test Command",
+          "title": "测试命令",
+          "desc": "测试命令",
+          "button_text": "测试命令",
           "confirm": true,
-          "confirm_text": "Are you sure you want to run this command?",
-          "confirm_button_text": "Run",
-          "cancel_button_text": "Cancel",
+          "confirm_text": "您确定要运行此命令吗？",
+          "confirm_button_text": "运行",
+          "cancel_button_text": "取消",
           "hidden": true
         },
         {
           "type": "command_button",
           "command": "wget https://raw.githubusercontent.com/tonesto7/op-utilities/main/CommaUtility.sh && chmod +x /data/CommaUtility.sh",
           "working_dir": "/data",
-          "title": "Install Comma Utility",
-          "desc": "Install Comma Utility",
-          "button_text": "Install",
+          "title": "安装Comma工具",
+          "desc": "安装Comma工具",
+          "button_text": "安装",
           "confirm": false,
           "hidden": true,
           "OnlyOnCommaDevice": true
@@ -253,18 +253,18 @@
         {
           "type": "file_viewer",
           "path": "/data/community/crashes/error.txt",
-          "title": "Recent Crashes",
-          "desc": "View the crashes file",
-          "button_text": "View Error",
+          "title": "最近崩溃",
+          "desc": "查看崩溃文件",
+          "button_text": "查看错误",
           "confirm": false,
           "hidden": false
         },
         {
           "type": "file_viewer",
           "path": "/data/logs/bp_logger/bluepilot.log",
-          "title": "BluePilot Log",
-          "desc": "View the BluePilot log",
-          "button_text": "View Log",
+          "title": "BluePilot日志",
+          "desc": "查看BluePilot日志",
+          "button_text": "查看日志",
           "confirm": false,
           "hidden": true
         },
@@ -272,9 +272,9 @@
           "type": "command_button",
           "command": "ifconfig",
           "working_dir": "/data/openpilot",
-          "title": "Get Network Info",
-          "desc": "Get network info using ifconfig",
-          "button_text": "Get Info",
+          "title": "获取网络信息",
+          "desc": "使用ifconfig获取网络信息",
+          "button_text": "获取信息",
           "confirm": false,
           "hidden": false
         },
@@ -282,13 +282,13 @@
           "type": "command_button",
           "command": "./scripts/fix_data_permissions.sh",
           "working_dir": "/data/openpilot",
-          "title": "Fix Data Permissions",
-          "desc": "Fix ownership and permissions for /data and /data/openpilot directories to ensure proper access (comma:comma, 755)",
-          "button_text": "Fix Permissions",
+          "title": "修复数据权限",
+          "desc": "修复/data和/data/openpilot目录的所有权和权限以确保正确访问（comma:comma, 755）",
+          "button_text": "修复权限",
           "confirm": true,
-          "confirm_text": "This will reset ownership to comma:comma and permissions to 755 for /data and /data/openpilot. Continue?",
-          "confirm_button_text": "Fix",
-          "cancel_button_text": "Cancel",
+          "confirm_text": "这会将/data和/data/openpilot的所有权重置为comma:comma，权限重置为755。继续吗？",
+          "confirm_button_text": "修复",
+          "cancel_button_text": "取消",
           "hidden": false,
           "OnlyOnCommaDevice": true
         },
@@ -296,9 +296,9 @@
           "type": "command_button",
           "command": "./scripts/device_health_check.sh comma@localhost",
           "working_dir": "/data/openpilot",
-          "title": "Device Health Check",
-          "desc": "Check device health: processes, disk space, memory usage, recent crashes, and critical files. View comprehensive status report.",
-          "button_text": "Run Check",
+          "title": "设备健康检查",
+          "desc": "检查设备健康状态：进程、磁盘空间、内存使用、最近崩溃和关键文件。查看综合状态报告。",
+          "button_text": "运行检查",
           "confirm": false,
           "hidden": false,
           "OnlyOnCommaDevice": true
@@ -307,13 +307,13 @@
           "type": "command_button",
           "command": "./scripts/fix_device_issues.sh",
           "working_dir": "/data/openpilot",
-          "title": "Fix Device Issues",
-          "desc": "Automatically fix common device issues: duplicate manager processes, stale overlay locks, and verify critical files. Safe to run anytime - only fixes detected problems.",
-          "button_text": "Fix Issues",
+          "title": "修复设备问题",
+          "desc": "自动修复常见设备问题：重复的管理器进程、过期的覆盖锁定和验证关键文件。可随时安全运行 - 仅修复检测到的问题。",
+          "button_text": "修复问题",
           "confirm": true,
-          "confirm_text": "This will check for and fix: duplicate manager processes, stale locks, and missing files. Continue?",
-          "confirm_button_text": "Fix",
-          "cancel_button_text": "Cancel",
+          "confirm_text": "这将检查并修复：重复的管理器进程、过期锁定和缺失文件。继续吗？",
+          "confirm_button_text": "修复",
+          "cancel_button_text": "取消",
           "hidden": false,
           "OnlyOnCommaDevice": true
         },
@@ -322,9 +322,9 @@
           "command": "/data/openpilot/scripts/force_branch_update.sh --test bp-5.0-beta",
           "working_dir": "/data/openpilot",
           "command_timeout_ms": 300000,
-          "title": "Test Force Update (Dry Run)",
-          "desc": "TEST MODE: Simulates the force update process without making any changes. Verifies internet connectivity, branch availability, and all checks. Safe to run - no modifications will be made.",
-          "button_text": "Test Update",
+          "title": "测试强制更新（试运行）",
+          "desc": "测试模式：模拟强制更新过程而不进行任何更改。验证互联网连接、分支可用性和所有检查。安全运行 - 不会进行任何修改。",
+          "button_text": "测试更新",
           "confirm": false,
           "actionButtons": [],
           "hidden": false,
@@ -335,22 +335,22 @@
           "command": "/data/openpilot/scripts/force_branch_update.sh bp-5.0-beta",
           "working_dir": "/data/openpilot",
           "command_timeout_ms": 900000,
-          "title": "Force Update to bp-5.0-beta",
-          "desc": "WARNING: Clones a fresh copy of bp-5.0-beta, verifies integrity, then replaces /data/openpilot. Uses bulletproof cloning with automatic rollback on failure. Timeout: 15 minutes. Requires reboot after completion.",
-          "button_text": "Force Update",
+          "title": "强制更新到bp-5.0-beta",
+          "desc": "警告：克隆bp-5.0-beta的新副本，验证完整性，然后替换/data/openpilot。使用防弹克隆，失败时自动回滚。超时：15分钟。完成后需要重启。",
+          "button_text": "强制更新",
           "confirm": true,
-          "confirm_text": "This will force update to bp-5.0-beta by:<br>• Cloning fresh copy to temporary directory<br>• Verifying branch, commit hash, and critical files<br>• Replacing /data/openpilot (with automatic rollback on errors)<br>• Fixing permissions<br><br><b>AGNOS Update:</b> If your device requires an AGNOS update, it will automatically download and install after the first reboot (may take 5-10 minutes).<br><br><b>Timeout:</b> Operation will timeout after 15 minutes.<br><br>Continue?",
-          "confirm_button_text": "Yes, Force Update",
-          "cancel_button_text": "Cancel",
+          "confirm_text": "这将通过以下方式强制更新到bp-5.0-beta：<br>• 将新副本克隆到临时目录<br>• 验证分支、提交哈希和关键文件<br>• 替换/data/openpilot（错误时自动回滚）<br>• 修复权限<br><br><b>AGNOS更新：</b>如果您的设备需要AGNOS更新，它将在第一次重启后自动下载并安装（可能需要5-10分钟）。<br><br><b>超时：</b>操作将在15分钟后超时。<br><br>继续吗？",
+          "confirm_button_text": "是，强制更新",
+          "cancel_button_text": "取消",
           "actionButtons": [
             {
-              "text": "Reboot Device",
+              "text": "重启设备",
               "action": "reboot",
               "showWhen": "success",
               "confirm": true,
-              "confirm_text": "The update is complete. Reboot now to apply changes?<br><br><b>Note:</b> If an AGNOS update is required, the device prompt you to install after rebooting (this may take 5-10 minutes).",
-              "confirm_yes_text": "Reboot Now",
-              "confirm_no_text": "Later"
+              "confirm_text": "更新完成。现在重启以应用更改吗？<br><br><b>注意：</b>如果需要AGNOS更新，设备将在重启后提示您安装（这可能需要5-10分钟）。",
+              "confirm_yes_text": "立即重启",
+              "confirm_no_text": "稍后"
             }
           ],
           "hidden": false,
