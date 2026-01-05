@@ -1,8 +1,8 @@
 {
   "_comment": "BluePilot Visuals Settings - Merged from SunnyPilot VisualsPanel + existing BP Visuals menu",
-  "menuName": "Visuals",
+  "menuName": "视觉",
   "menuIcon": "../../sunnypilot/selfdrive/assets/offroad/icon_visuals.svg",
-  "menuDescription": "Visual Display Settings",
+  "menuDescription": "视觉显示设置",
   "persistentParams": [],
   "clearOnManagerStartParams": [],
   "clearOnOnroadTransitionParams": [],
@@ -10,7 +10,7 @@
   "groups": [
     {
       "groupName": "displayPreferencesGroup",
-      "title": "Display Preferences",
+      "title": "显示偏好",
       "enableResetButton": false,
       "controls": [
         {
@@ -23,24 +23,24 @@
     },
     {
       "groupName": "pathAndModelGroup",
-      "title": "Path and Model Display",
+      "title": "路径和模型显示",
       "enableResetButton": false,
       "controls": [
         {
           "type": "selection",
           "param": "CustomModelPathColor",
-          "title": "Custom Model Path Color",
-          "desc": "[BluePilot] Customize the color of the driving path overlay",
+          "title": "自定义模型路径颜色",
+          "desc": "[BluePilot] 自定义驾驶路径叠加层的颜色",
           "options": [
-            { "name": "Stock", "value": "Stock", "default": true },
-            { "name": "Rainbow", "value": "Rainbow" },
-            { "name": "Blue", "value": "Blue" },
-            { "name": "Green", "value": "Green" },
-            { "name": "Purple", "value": "Purple" },
-            { "name": "Orange", "value": "Orange" },
-            { "name": "Red", "value": "Red" },
-            { "name": "Cyan", "value": "Cyan" },
-            { "name": "Yellow", "value": "Yellow" }
+            { "name": "原厂", "value": "Stock", "default": true },
+            { "name": "彩虹", "value": "Rainbow" },
+            { "name": "蓝色", "value": "Blue" },
+            { "name": "绿色", "value": "Green" },
+            { "name": "紫色", "value": "Purple" },
+            { "name": "橙色", "value": "Orange" },
+            { "name": "红色", "value": "Red" },
+            { "name": "青色", "value": "Cyan" },
+            { "name": "黄色", "value": "Yellow" }
           ]
         },
         {
@@ -52,8 +52,8 @@
         {
           "type": "toggle",
           "param": "ShowBrakeStatus",
-          "title": "Show Brake Status",
-          "desc": "[BluePilot] Changes the speed color to red when the brake is pressed.<br/>(This setting is only tested on F150s at this time.)"
+          "title": "显示制动状态",
+          "desc": "[BluePilot] 按下制动时，将速度颜色变为红色。<br/>（此设置目前仅在F150上测试过。）"
         },
         {
           "type": "toggle",
@@ -70,8 +70,8 @@
         {
           "type": "toggle",
           "param": "ShowWideCameraAtLowSpeed",
-          "title": "Show Wide Camera at Low Speed",
-          "desc": "[BluePilot] Show the wide camera at low speed.",
+          "title": "低速时显示广角摄像头",
+          "desc": "[BluePilot] 低速时显示广角摄像头。",
           "conditions": {
             "git_remote": ["any"]
           }
@@ -79,8 +79,8 @@
         {
           "type": "toggle",
           "param": "RainbowMode",
-          "title": "Enable Tesla Rainbow Mode",
-          "desc": "A beautiful rainbow effect on the path the model wants to take.<br/><i>It <b>does not</b> affect driving in any way.</i>"
+          "title": "启用特斯拉彩虹模式",
+          "desc": "在模型想要行驶的路径上显示美丽的彩虹效果。<br/><i>它<b>不会</b>以任何方式影响驾驶。</i>"
         },
         {
           "type": "toggle",
@@ -110,7 +110,7 @@
     },
     {
       "groupName": "radarAndOverlayGroup",
-      "title": "Radar and Overlay Settings",
+      "title": "雷达和叠加设置",
       "enableResetButton": false,
       "controls": [
         {
@@ -122,13 +122,13 @@
         {
           "type": "segmented_control",
           "param": "FordPrefRadarOverlaySize",
-          "title": "Radar Lead Vehicle Overlay Size",
-          "desc": "[BluePilot] Adjusts the size of the radar lead vehicle overlay",
+          "title": "雷达前车叠加层大小",
+          "desc": "[BluePilot] 调整雷达前车叠加层的大小",
           "options": [
-            { "name": "Small", "value": "1", "default": true },
-            { "name": "Medium", "value": "2" },
-            { "name": "Large", "value": "3" },
-            { "name": "Ex-Large", "value": "4" }
+            { "name": "小", "value": "1", "default": true },
+            { "name": "中", "value": "2" },
+            { "name": "大", "value": "3" },
+            { "name": "超大", "value": "4" }
           ],
           "enableConditions": {
             "allConditionsTrue": [
@@ -136,7 +136,7 @@
               { "git_branch": [] },
               {
                 "paramIsTrue": "FordPrefShowRadarLeadOverlay",
-                "reason": "Requires Radar Lead Vehicle Overlay to be enabled"
+                "reason": "需要启用雷达前车叠加层"
               }
             ]
           }
@@ -145,14 +145,14 @@
     },
     {
       "groupName": "hybridDataGroup",
-      "title": "Hybrid Vehicle Data",
+      "title": "混合动力车辆数据",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "FordPrefHybridDriveOverlay",
-          "title": "Show Hybrid Electric Data Overlays",
-          "desc": "[BluePilot] Displays hybrid electric vehicle data.",
+          "title": "显示混合动力电动数据叠加层",
+          "desc": "[BluePilot] 显示混合动力电动车辆数据。",
           "enableConditions": {
             "allConditionsTrue": [
               {
@@ -165,21 +165,21 @@
         {
           "type": "toggle",
           "param": "FordPrefHybridBatteryOverlay",
-          "title": "Show Hybrid Battery Data Overlays",
-          "desc": "[BluePilot] Displays hybrid battery data.",
+          "title": "显示混合动力电池数据叠加层",
+          "desc": "[BluePilot] 显示混合动力电池数据。",
           "enableConditions": {
             "allConditionsTrue": [
               {
                 "paramIsTrue": "FordPrefHybridDriveOverlay",
-                "reason": "Requires Hybrid Electric Data Overlays to be enabled"
+                "reason": "需要启用混合动力电动数据叠加层"
               },
               {
                 "paramIsTrue": "FordPrefHevDataAvailable",
-                "reason": "Vehicle does not support hybrid electric data"
+                "reason": "车辆不支持混合动力电动数据"
               },
               {
                 "paramIsTrue": "FordPrefHevBattDataAvailable",
-                "reason": "Vehicle does not support hybrid battery data"
+                "reason": "车辆不支持混合动力电池数据"
               }
             ]
           }
@@ -187,18 +187,18 @@
         {
           "type": "segmented_control",
           "param": "FordPrefHybridDriveGaugeSize",
-          "title": "Hybrid Drive Gauge Size",
-          "desc": "[BluePilot] Adjusts the size of the hybrid drive gauge",
+          "title": "混合动力驱动仪表大小",
+          "desc": "[BluePilot] 调整混合动力驱动仪表的大小",
           "options": [
-            { "name": "Small", "value": "1", "default": true },
-            { "name": "Medium", "value": "2" },
-            { "name": "Large", "value": "3" }
+            { "name": "小", "value": "1", "default": true },
+            { "name": "中", "value": "2" },
+            { "name": "大", "value": "3" }
           ],
           "enableConditions": {
             "allConditionsTrue": [
               {
                 "paramIsTrue": "FordPrefHybridDriveOverlay",
-                "reason": "Requires Hybrid Electric Data Overlays to be enabled"
+                "reason": "需要启用混合动力电动数据叠加层"
               }
             ]
           }
@@ -207,14 +207,14 @@
     },
     {
       "groupName": "metersAndTimersGroup",
-      "title": "Meters and Timers",
+      "title": "仪表和计时器",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "ShowGForceMeter",
-          "title": "Show G-Force Meter",
-          "desc": "[BluePilot] Displays a g-force meter when onroad.",
+          "title": "显示G力仪表",
+          "desc": "[BluePilot] 行驶时显示G力仪表。",
           "hidden": true,
           "_comment": "DISABLED: G-Force meter disabled for performance/consistency issues"
         },
@@ -228,7 +228,7 @@
     },
     {
       "groupName": "alertsAndChimesGroup",
-      "title": "Alerts and Chimes",
+      "title": "警报和提示音",
       "enableResetButton": false,
       "controls": [
         {
@@ -240,40 +240,40 @@
         {
           "type": "toggle",
           "param": "GreenLightAlert",
-          "title": "Green Traffic Light Alert (Beta)",
-          "desc": "A chime and on-screen alert will play when the traffic light you are waiting for turns green and you have no vehicle in front of you.<br><h4>Note: This chime is only designed as a notification. It is the driver's responsibility to observe their environment and make decisions accordingly.</h4><br>"
+          "title": "绿灯警报（Beta）",
+          "desc": "当您等待的交通灯变绿且您前方没有车辆时，将播放提示音和屏幕警报。<br><h4>注意：此提示音仅设计为通知。驾驶员有责任观察周围环境并做出相应决定。</h4><br>"
         },
         {
           "type": "toggle",
           "param": "LeadDepartAlert",
-          "title": "Lead Departure Alert (Beta)",
-          "desc": "A chime and on-screen alert will play when you are stopped, and the vehicle in front of you start moving.<br><h4>Note: This chime is only designed as a notification. It is the driver's responsibility to observe their environment and make decisions accordingly.</h4><br>"
+          "title": "前车起步警报（Beta）",
+          "desc": "当您停车时，前车开始移动时将播放提示音和屏幕警报。<br><h4>注意：此提示音仅设计为通知。驾驶员有责任观察周围环境并做出相应决定。</h4><br>"
         }
       ]
     },
     {
       "groupName": "advancedDisplayGroup",
-      "title": "Advanced Display",
+      "title": "高级显示",
       "enableResetButton": false,
       "controls": [
         {
           "type": "segmented_control",
           "param": "ChevronInfo",
-          "title": "Display Metrics Below Chevron",
-          "desc": "Display useful metrics below the chevron that tracks the lead car (only applicable to cars with openpilot longitudinal control).",
+          "title": "在V形标志下方显示指标",
+          "desc": "在跟踪前车的V形标志下方显示有用指标（仅适用于具有openpilot纵向控制的车辆）。",
           "showDescBottom": true,
           "options": [
-            { "name": "Off", "value": "0", "default": true },
-            { "name": "Distance", "value": "1" },
-            { "name": "Speed", "value": "2" },
-            { "name": "Time", "value": "3" },
-            { "name": "All", "value": "4" }
+            { "name": "关闭", "value": "0", "default": true },
+            { "name": "距离", "value": "1" },
+            { "name": "速度", "value": "2" },
+            { "name": "时间", "value": "3" },
+            { "name": "全部", "value": "4" }
           ],
           "dynamic_desc": true,
           "descriptions": {
-            "default": "Display useful metrics below the chevron that tracks the lead car (only applicable to cars with openpilot longitudinal control).",
-            "offroad": "Start the vehicle to check vehicle compatibility.",
-            "noLong": "This feature requires openpilot longitudinal control to be available."
+            "default": "在跟踪前车的V形标志下方显示有用指标（仅适用于具有openpilot纵向控制的车辆）。",
+            "offroad": "启动车辆以检查车辆兼容性。",
+            "noLong": "此功能需要openpilot纵向控制可用。"
           },
           "description_conditions": {
             "offroad": {
@@ -290,11 +290,11 @@
             "allConditionsTrue": [
               {
                 "isOnroad": true,
-                "reason": "Start the vehicle to enable this setting"
+                "reason": "启动车辆以启用此设置"
               },
               {
                 "hasLongitudinalControl": true,
-                "reason": "Requires openpilot longitudinal control"
+                "reason": "需要openpilot纵向控制"
               }
             ]
           }
@@ -302,12 +302,12 @@
         {
           "type": "segmented_control",
           "param": "DevUIInfo",
-          "title": "Developer UI",
-          "desc": "Display real-time parameters and metrics from various sources.",
+          "title": "开发者UI",
+          "desc": "显示来自各种来源的实时参数和指标。",
           "options": [
-            { "name": "Off", "value": "0", "default": true },
-            { "name": "Right", "value": "1" },
-            { "name": "Right && Bottom", "value": "2" }
+            { "name": "关闭", "value": "0", "default": true },
+            { "name": "右侧", "value": "1" },
+            { "name": "右侧和底部", "value": "2" }
           ]
         }
       ]
