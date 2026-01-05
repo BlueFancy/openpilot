@@ -6,9 +6,9 @@
     "wifi_metered": "Custom segmented control that interacts directly with WifiManager via NetworkManager (not param-based)",
     "signal_connectors": "Search up widget tree to find BPWifiListControl for cross-group communication"
   },
-  "menuName": "BP Network",
+  "menuName": "网络",
   "menuIcon": "icon_network.png",
-  "menuDescription": "Network Settings",
+  "menuDescription": "网络设置",
   "persistentParams": [],
   "clearOnManagerStartParams": [],
   "clearOnOnroadTransitionParams": [],
@@ -16,59 +16,59 @@
   "groups": [
     {
       "groupName": "wifiNetworksGroup",
-      "title": "Available Wi-Fi Networks",
+      "title": "可用Wi-Fi网络",
       "enableResetButton": false,
       "controls": [
         {
           "type": "wifi_list",
-          "title": "Wi-Fi Networks",
-          "desc": "Click a network to connect. Tap FORGET on connected networks to remove them."
+          "title": "Wi-Fi网络",
+          "desc": "点击网络进行连接。在已连接的网络点击忘记以移除它们。"
         }
       ]
     },
     {
       "groupName": "wifiManagementGroup",
-      "title": "Wi-Fi Management",
+      "title": "Wi-Fi管理",
       "enableResetButton": false,
       "controls": [
         {
           "type": "command_button",
-          "title": "Hidden Network",
-          "desc": "Connect to a hidden Wi-Fi network by entering SSID",
-          "button_text": "CONNECT",
+          "title": "隐藏网络",
+          "desc": "通过输入SSID连接到隐藏的Wi-Fi网络",
+          "button_text": "连接",
           "connect_signal": "connectHiddenNetwork"
         },
         {
           "type": "command_button",
-          "title": "Scan for Networks",
-          "desc": "Manually scan for available Wi-Fi networks",
-          "button_text": "SCAN",
+          "title": "扫描网络",
+          "desc": "手动扫描可用的Wi-Fi网络",
+          "button_text": "扫描",
           "connect_signal": "scanNetworks"
         },
         {
           "_note": "WiFi metered uses a custom segmented control (not param-based)",
           "type": "wifi_metered",
-          "title": "Wi-Fi Network Metered",
-          "desc": "Prevent large data uploads when on a metered Wi-Fi connection"
+          "title": "Wi-Fi网络按流量计费",
+          "desc": "在按流量计费的Wi-Fi连接上防止大数据上传"
         }
       ]
     },
     {
       "groupName": "tetheringGroup",
-      "title": "Tethering",
+      "title": "热点",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "EnableTethering",
-          "title": "Wi-Fi Tethering",
-          "desc": "Share your internet connection with other devices"
+          "title": "Wi-Fi热点",
+          "desc": "与其他设备共享您的互联网连接"
         },
         {
           "type": "command_button",
-          "title": "Tethering Password",
-          "desc": "Change the password for the Wi-Fi hotspot",
-          "button_text": "CHANGE",
+          "title": "热点密码",
+          "desc": "更改Wi-Fi热点的密码",
+          "button_text": "更改",
           "connect_signal": "changeTetheringPassword",
           "visibleConditions": {
             "allConditionsTrue": [{ "paramIsTrue": "EnableTethering" }]
@@ -78,7 +78,7 @@
     },
     {
       "groupName": "cellularGroup",
-      "title": "Cellular Settings",
+      "title": "移动网络设置",
       "enableResetButton": false,
       "conditions": {
         "hardware_type": ["tici"]
@@ -87,20 +87,20 @@
         {
           "type": "toggle",
           "param": "GsmRoaming",
-          "title": "Enable Roaming",
-          "desc": "Allow cellular data when roaming"
+          "title": "启用漫游",
+          "desc": "允许漫游时使用移动数据"
         },
         {
           "type": "toggle",
           "param": "GsmMetered",
-          "title": "Cellular Metered",
-          "desc": "Prevent large uploads on metered connection"
+          "title": "移动网络按流量计费",
+          "desc": "在按流量计费的连接上防止大数据上传"
         },
         {
           "type": "command_button",
-          "title": "APN Setting",
-          "desc": "Configure Access Point Name for cellular data",
-          "button_text": "EDIT",
+          "title": "APN设置",
+          "desc": "配置移动数据的接入点名称",
+          "button_text": "编辑",
           "connect_signal": "editApn"
         }
       ]
