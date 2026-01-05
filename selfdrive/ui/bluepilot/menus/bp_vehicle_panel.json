@@ -1,29 +1,29 @@
 {
   "type": "base",
-  "menuName": "Vehicle",
+  "menuName": "车辆",
   "menuIcon": "../../sunnypilot/selfdrive/assets/offroad/icon_vehicle.svg",
-  "menuDescription": "Vehicle Settings and Platform Selection",
+  "menuDescription": "车辆设置和平台选择",
   "groups": [
     {
       "groupName": "platformSelectionGroup",
-      "title": "Platform Selection",
+      "title": "平台选择",
       "controls": [
         {
           "type": "platform_display",
-          "title": "Current Vehicle",
-          "desc": "Shows the active vehicle fingerprint with priority:\n1. BluePilot Ford Vehicle Selector (if set)\n2. SunnyPilot Manual Selection (if set)\n3. Auto-detected from CAN fingerprint\n\n🟢 = Auto-fingerprinted | 🔵 = Manual Selection | 🟡 = Unrecognized",
+          "title": "当前车辆",
+          "desc": "显示活动车辆指纹，优先级：\n1. BluePilot Ford车辆选择器（如果已设置）\n2. SunnyPilot手动选择（如果已设置）\n3. 从CAN指纹自动检测\n\n🟢 = 自动指纹识别 | 🔵 = 手动选择 | 🟡 = 未识别",
           "value_param": "VehiclePlatformDisplay",
           "value_color": "#0086E9"
         },
         {
           "type": "selection",
           "param": "FordSelectedVehicleModel",
-          "title": "BluePilot Ford Vehicle Selector",
-          "desc": "Force fingerprint for Ford vehicles to exit Dashcam Mode. This setting has priority over SunnyPilot manual selection.\n\n🔵 Select your specific Ford/Lincoln vehicle model to override automatic detection.",
+          "title": "BluePilot Ford车辆选择器",
+          "desc": "强制Ford车辆的指纹以退出行车记录仪模式。此设置优先于SunnyPilot手动选择。\n\n🔵 选择您特定的Ford/Lincoln车辆型号以覆盖自动检测。",
           "requiresReboot": false,
           "options": [
             {
-              "name": "Auto Detect",
+              "name": "自动检测",
               "value": ""
             },
             {
@@ -94,16 +94,16 @@
         },
         {
           "type": "command_button",
-          "title": "Manual Vehicle Selection",
-          "desc": "Search for and manually select your vehicle if automatic fingerprinting fails or you want to override the detected vehicle.",
-          "button_text": "SEARCH",
+          "title": "手动车辆选择",
+          "desc": "如果自动指纹识别失败或您想覆盖检测到的车辆，请搜索并手动选择您的车辆。",
+          "button_text": "搜索",
           "action": "search_platform"
         },
         {
           "type": "command_button",
-          "title": "Remove Manual Selection",
-          "desc": "Remove the manually selected vehicle (BluePilot or SunnyPilot) and return to automatic fingerprinting.",
-          "button_text": "REMOVE",
+          "title": "移除手动选择",
+          "desc": "移除手动选择的车辆（BluePilot或SunnyPilot）并返回自动指纹识别。",
+          "button_text": "移除",
           "action": "remove_platform",
           "visibleConditions": {
             "anyConditionsTrue": [
@@ -116,20 +116,20 @@
     },
     {
       "groupName": "hyundaiSettingsGroup",
-      "title": "Hyundai Settings",
+      "title": "现代设置",
       "hidden": true,
       "controls": [
         {
           "type": "selection",
           "param": "HyundaiLongitudinalTuning",
-          "title": "Custom Longitudinal Tuning",
+          "title": "自定义纵向调谐",
           "desc": "",
           "dynamic_desc": true,
           "descriptions": {
-            "off": "This feature provides customized longitudinal control tuning for supported Hyundai/Kia/Genesis vehicles.\n\n<b>Off:</b> Use default longitudinal controls.",
-            "dynamic": "This feature provides customized longitudinal control tuning for supported Hyundai/Kia/Genesis vehicles.\n\n<b>Dynamic:</b> Smooth, dynamic response that adapts to driving conditions.\n• Better for highway cruising\n• More gradual acceleration/deceleration\n• Comfortable for passengers",
-            "predictive": "This feature provides customized longitudinal control tuning for supported Hyundai/Kia/Genesis vehicles.\n\n<b>Predictive:</b> Quick, responsive behavior for city driving.\n• Better for stop-and-go traffic\n• Faster reaction to lead vehicle changes\n• More aggressive acceleration/deceleration",
-            "disabled": "Start the vehicle to check compatibility.\nThis feature requires openpilot longitudinal control to be available."
+            "off": "此功能为支持的现代/起亚/Genesis车辆提供自定义纵向控制调谐。\n\n<b>关闭：</b>使用默认纵向控制。",
+            "dynamic": "此功能为支持的现代/起亚/Genesis车辆提供自定义纵向控制调谐。\n\n<b>动态：</b>平滑、动态的响应，适应驾驶条件。\n• 更适合高速公路巡航\n• 更渐进的加速/减速\n• 乘客更舒适",
+            "predictive": "此功能为支持的现代/起亚/Genesis车辆提供自定义纵向控制调谐。\n\n<b>预测：</b>城市驾驶的快速、响应行为。\n• 更适合走走停停的交通\n• 对前车变化的反应更快\n• 更激进的加速/减速",
+            "disabled": "启动车辆以检查兼容性。\n此功能需要openpilot纵向控制可用。"
           },
           "description_conditions": {
             "off": {
@@ -157,16 +157,16 @@
           "options": [
             {
               "value": "0",
-              "label": "Off",
+              "label": "关闭",
               "default": true
             },
             {
               "value": "1",
-              "label": "Dynamic"
+              "label": "动态"
             },
             {
               "value": "2",
-              "label": "Predictive"
+              "label": "预测"
             }
           ],
           "enableConditions": {
@@ -183,13 +183,13 @@
     },
     {
       "groupName": "fordSettingsGroup",
-      "title": "Ford Settings",
+      "title": "Ford设置",
       "hidden": true,
       "controls": [
         {
           "type": "static_text",
-          "title": "Ford-Specific Controls",
-          "desc": "This section is reserved for Ford-specific vehicle settings. BluePilot provides extensive Ford-specific tuning through other panels (Steering, Cruise, Visuals).\n\nNo additional Ford-specific controls are currently required here.",
+          "title": "Ford特定控制",
+          "desc": "此部分保留用于Ford特定车辆设置。BluePilot通过其他面板（转向、巡航、视觉）提供广泛的Ford特定调谐。\n\n目前此处不需要其他Ford特定控制。",
           "visibleConditions": {
             "allConditionsTrue": [{ "brandEquals": "ford" }]
           }
@@ -198,13 +198,13 @@
     },
     {
       "groupName": "toyotaSettingsGroup",
-      "title": "Toyota Settings",
+      "title": "丰田设置",
       "hidden": true,
       "controls": [
         {
           "type": "static_text",
-          "title": "Toyota-Specific Controls",
-          "desc": "This section is reserved for Toyota-specific vehicle settings.\n\nNo Toyota-specific controls are currently defined.",
+          "title": "丰田特定控制",
+          "desc": "此部分保留用于丰田特定车辆设置。\n\n目前未定义丰田特定控制。",
           "visibleConditions": {
             "allConditionsTrue": [{ "brandEquals": "toyota" }]
           }
@@ -213,13 +213,13 @@
     },
     {
       "groupName": "gmSettingsGroup",
-      "title": "GM Settings",
+      "title": "通用设置",
       "hidden": true,
       "controls": [
         {
           "type": "static_text",
-          "title": "GM-Specific Controls",
-          "desc": "This section is reserved for GM-specific vehicle settings.\n\nNo GM-specific controls are currently defined.",
+          "title": "通用特定控制",
+          "desc": "此部分保留用于通用特定车辆设置。\n\n目前未定义通用特定控制。",
           "visibleConditions": {
             "allConditionsTrue": [{ "brandEquals": "gm" }]
           }
@@ -228,13 +228,13 @@
     },
     {
       "groupName": "hondaSettingsGroup",
-      "title": "Honda Settings",
+      "title": "本田设置",
       "hidden": true,
       "controls": [
         {
           "type": "static_text",
-          "title": "Honda-Specific Controls",
-          "desc": "This section is reserved for Honda-specific vehicle settings.\n\nNo Honda-specific controls are currently defined.",
+          "title": "本田特定控制",
+          "desc": "此部分保留用于本田特定车辆设置。\n\n目前未定义本田特定控制。",
           "visibleConditions": {
             "allConditionsTrue": [{ "brandEquals": "honda" }]
           }
@@ -243,13 +243,13 @@
     },
     {
       "groupName": "chryslerSettingsGroup",
-      "title": "Chrysler Settings",
+      "title": "克莱斯勒设置",
       "hidden": true,
       "controls": [
         {
           "type": "static_text",
-          "title": "Chrysler-Specific Controls",
-          "desc": "This section is reserved for Chrysler-specific vehicle settings.\n\nNo Chrysler-specific controls are currently defined.",
+          "title": "克莱斯勒特定控制",
+          "desc": "此部分保留用于克莱斯勒特定车辆设置。\n\n目前未定义克莱斯勒特定控制。",
           "visibleConditions": {
             "allConditionsTrue": [{ "brandEquals": "chrysler" }]
           }
@@ -258,13 +258,13 @@
     },
     {
       "groupName": "mazdaSettingsGroup",
-      "title": "Mazda Settings",
+      "title": "马自达设置",
       "hidden": true,
       "controls": [
         {
           "type": "static_text",
-          "title": "Mazda-Specific Controls",
-          "desc": "This section is reserved for Mazda-specific vehicle settings.\n\nNo Mazda-specific controls are currently defined.",
+          "title": "马自达特定控制",
+          "desc": "此部分保留用于马自达特定车辆设置。\n\n目前未定义马自达特定控制。",
           "visibleConditions": {
             "allConditionsTrue": [{ "brandEquals": "mazda" }]
           }
@@ -273,13 +273,13 @@
     },
     {
       "groupName": "nissanSettingsGroup",
-      "title": "Nissan Settings",
+      "title": "日产设置",
       "hidden": true,
       "controls": [
         {
           "type": "static_text",
-          "title": "Nissan-Specific Controls",
-          "desc": "This section is reserved for Nissan-specific vehicle settings.\n\nNo Nissan-specific controls are currently defined.",
+          "title": "日产特定控制",
+          "desc": "此部分保留用于日产特定车辆设置。\n\n目前未定义日产特定控制。",
           "visibleConditions": {
             "allConditionsTrue": [{ "brandEquals": "nissan" }]
           }
@@ -288,13 +288,13 @@
     },
     {
       "groupName": "subaruSettingsGroup",
-      "title": "Subaru Settings",
+      "title": "斯巴鲁设置",
       "hidden": true,
       "controls": [
         {
           "type": "static_text",
-          "title": "Subaru-Specific Controls",
-          "desc": "This section is reserved for Subaru-specific vehicle settings.\n\nNo Subaru-specific controls are currently defined.",
+          "title": "斯巴鲁特定控制",
+          "desc": "此部分保留用于斯巴鲁特定车辆设置。\n\n目前未定义斯巴鲁特定控制。",
           "visibleConditions": {
             "allConditionsTrue": [{ "brandEquals": "subaru" }]
           }
@@ -303,13 +303,13 @@
     },
     {
       "groupName": "volkswagenSettingsGroup",
-      "title": "Volkswagen Settings",
+      "title": "大众设置",
       "hidden": true,
       "controls": [
         {
           "type": "static_text",
-          "title": "Volkswagen-Specific Controls",
-          "desc": "This section is reserved for Volkswagen-specific vehicle settings.\n\nNo Volkswagen-specific controls are currently defined.",
+          "title": "大众特定控制",
+          "desc": "此部分保留用于大众特定车辆设置。\n\n目前未定义大众特定控制。",
           "visibleConditions": {
             "allConditionsTrue": [{ "brandEquals": "volkswagen" }]
           }
@@ -318,13 +318,13 @@
     },
     {
       "groupName": "teslaSettingsGroup",
-      "title": "Tesla Settings",
+      "title": "特斯拉设置",
       "hidden": true,
       "controls": [
         {
           "type": "static_text",
-          "title": "Tesla-Specific Controls",
-          "desc": "This section is reserved for Tesla-specific vehicle settings.\n\nNo Tesla-specific controls are currently defined.",
+          "title": "特斯拉特定控制",
+          "desc": "此部分保留用于特斯拉特定车辆设置。\n\n目前未定义特斯拉特定控制。",
           "visibleConditions": {
             "allConditionsTrue": [{ "brandEquals": "tesla" }]
           }
@@ -333,13 +333,13 @@
     },
     {
       "groupName": "rivianSettingsGroup",
-      "title": "Rivian Settings",
+      "title": "Rivian设置",
       "hidden": true,
       "controls": [
         {
           "type": "static_text",
-          "title": "Rivian-Specific Controls",
-          "desc": "This section is reserved for Rivian-specific vehicle settings.\n\nNo Rivian-specific controls are currently defined.",
+          "title": "Rivian特定控制",
+          "desc": "此部分保留用于Rivian特定车辆设置。\n\n目前未定义Rivian特定控制。",
           "visibleConditions": {
             "allConditionsTrue": [{ "brandEquals": "rivian" }]
           }
