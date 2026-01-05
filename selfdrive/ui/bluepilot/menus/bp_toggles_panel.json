@@ -1,8 +1,8 @@
 {
   "_comment": "BluePilot Toggles Panel - Core sunnypilot toggle settings",
-  "menuName": "Toggles",
+  "menuName": "开关",
   "menuIcon": "../../sunnypilot/selfdrive/assets/offroad/icon_toggle.png",
-  "menuDescription": "Core sunnypilot Settings and Features",
+  "menuDescription": "核心sunnypilot设置和功能",
   "persistentParams": [],
   "clearOnManagerStartParams": [],
   "clearOnOnroadTransitionParams": [],
@@ -10,19 +10,19 @@
   "groups": [
     {
       "groupName": "systemPreferencesGroup",
-      "title": "System Preferences:",
+      "title": "系统偏好：",
       "enableResetButton": false,
       "controls": [
         {
           "type": "selection",
           "param": "FordSelectedVehicleModel",
-          "title": "Vehicle Model",
-          "desc": "This will force the FINGERPRINT for the vehicle so it exits the Dashcam Mode and allows the vehicle to drive.",
+          "title": "车辆型号",
+          "desc": "这将强制车辆的FINGERPRINT，使其退出行车记录仪模式并允许车辆行驶。",
           "requiresReboot": true,
           "hidden": true,
           "options": [
             {
-              "name": "Auto Detect",
+              "name": "自动检测",
               "value": ""
             },
             {
@@ -100,20 +100,20 @@
     },
     {
       "groupName": "coreTogglesGroup",
-      "title": "Core Settings",
+      "title": "核心设置",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "OpenpilotEnabledToggle",
-          "title": "Enable sunnypilot",
-          "desc": "Use the sunnypilot system for adaptive cruise control and lane keep driver assistance. Your attention is required at all times to use this feature.",
+          "title": "启用sunnypilot",
+          "desc": "使用sunnypilot系统进行自适应巡航控制和车道保持辅助。使用此功能时，您需要始终保持注意力。",
           "icon": "../assets/icons/chffr_wheel.png",
           "needs_restart": true,
           "dynamic_desc": true,
           "descriptions": {
-            "default": "Use the sunnypilot system for adaptive cruise control and lane keep driver assistance. Your attention is required at all times to use this feature.",
-            "needs_restart": "Use the sunnypilot system for adaptive cruise control and lane keep driver assistance. Your attention is required at all times to use this feature. Changing this setting will restart openpilot if the car is powered on."
+            "default": "使用sunnypilot系统进行自适应巡航控制和车道保持辅助。使用此功能时，您需要始终保持注意力。",
+            "needs_restart": "使用sunnypilot系统进行自适应巡航控制和车道保持辅助。使用此功能时，您需要始终保持注意力。如果车辆已启动，更改此设置将重启openpilot。"
           },
           "description_conditions": {
             "needs_restart": {
@@ -128,34 +128,34 @@
         {
           "type": "toggle",
           "param": "ExperimentalMode",
-          "title": "Experimental Mode",
-          "desc": "openpilot defaults to driving in chill mode. Experimental mode enables alpha-level features that aren't ready for chill mode.",
+          "title": "实验模式",
+          "desc": "openpilot默认以轻松模式驾驶。实验模式启用尚未准备好用于轻松模式的alpha级功能。",
           "icon": "../assets/icons/experimental_white.svg",
           "active_icon": "../assets/icons/experimental.svg",
           "confirm": true,
-          "confirm_text": "openpilot defaults to driving in <b>chill mode</b>. Experimental mode enables <b>alpha-level features</b> that aren't ready for chill mode. Experimental features are listed below:<br><br><h4>End-to-End Longitudinal Control</h4><br>Let the driving model control the gas and brakes. openpilot will drive as it thinks a human would, including stopping for red lights and stop signs. Since the driving model decides the speed to drive, the set speed will only act as an upper bound. This is an alpha quality feature; mistakes should be expected.<br><h4>New Driving Visualization</h4><br>The driving visualization will transition to the road-facing wide-angle camera at low speeds to better show some turns. The Experimental mode logo will also be shown in the top right corner.",
-          "confirm_yes_text": "Enable",
-          "confirm_no_text": "Cancel",
+          "confirm_text": "openpilot默认以<b>轻松模式</b>驾驶。实验模式启用尚未准备好用于轻松模式的<b>alpha级功能</b>。实验功能如下：<br><br><h4>端到端纵向控制</h4><br>让驾驶模型控制油门和制动。openpilot将按照它认为人类会做的方式驾驶，包括在红灯和停车标志处停车。由于驾驶模型决定行驶速度，设定速度仅作为上限。这是一个alpha质量的功能；可能会出现错误。<br><h4>新驾驶可视化</h4><br>驾驶可视化将在低速时切换到面向道路的广角摄像头，以更好地显示一些转弯。实验模式徽标也将显示在右上角。",
+          "confirm_yes_text": "启用",
+          "confirm_no_text": "取消",
           "auto_reset_value": "0",
           "enableConditions": {
             "anyConditionsTrue": [
               {
                 "hasCarParams": false,
-                "reason": "Start the vehicle to enable this setting"
+                "reason": "启动车辆以启用此设置"
               },
               {
                 "hasLongitudinalControl": true,
-                "reason": "Requires longitudinal control"
+                "reason": "需要纵向控制"
               },
               {
                 "allConditionsTrue": [
                   {
                     "hasAlphaLongitudinalAvailable": true,
-                    "reason": "Requires alpha longitudinal to be available"
+                    "reason": "需要alpha纵向控制可用"
                   },
                   {
                     "isNotReleaseBranch": true,
-                    "reason": "Only available on development branches"
+                    "reason": "仅在开发分支上可用"
                   }
                 ]
               }
@@ -165,41 +165,41 @@
         {
           "type": "toggle",
           "param": "DynamicExperimentalControl",
-          "title": "Enable Dynamic Experimental Control",
-          "desc": "Enable toggle to allow the model to determine when to use sunnypilot ACC or sunnypilot End to End Longitudinal.",
+          "title": "启用动态实验控制",
+          "desc": "启用此开关以允许模型决定何时使用sunnypilot ACC或sunnypilot端到端纵向控制。",
           "icon": "../assets/offroad/icon_blank.png"
         }
       ]
     },
     {
       "groupName": "drivingBehaviorGroup",
-      "title": "Driving Behavior",
+      "title": "驾驶行为",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "DisengageOnAccelerator",
-          "title": "Disengage on Accelerator Pedal",
-          "desc": "When enabled, pressing the accelerator pedal will disengage sunnypilot.",
+          "title": "在加速踏板上解除",
+          "desc": "启用后，按下加速踏板将解除sunnypilot。",
           "icon": "../assets/icons/disengage_on_accelerator.svg"
         },
         {
           "type": "segmented_control",
           "param": "LongitudinalPersonality",
-          "title": "Driving Personality",
-          "desc": "Standard is recommended. In aggressive mode, sunnypilot will follow lead cars closer and be more aggressive with the gas and brake. In relaxed mode sunnypilot will stay further away from lead cars. On supported cars, you can cycle through these personalities with your steering wheel distance button.",
+          "title": "驾驶个性",
+          "desc": "推荐使用标准模式。在激进模式下，sunnypilot将更接近前车，并在油门和制动方面更加激进。在轻松模式下，sunnypilot将与前车保持更远的距离。在支持的车辆上，您可以使用方向盘距离按钮在这些个性之间循环切换。",
           "showDescBottom": true,
           "icon": "../assets/icons/speed_limit.png",
           "options": [
-            { "name": "Aggressive", "value": "0" },
-            { "name": "Standard", "value": "1", "default": true },
-            { "name": "Relaxed", "value": "2" }
+            { "name": "激进", "value": "0" },
+            { "name": "标准", "value": "1", "default": true },
+            { "name": "轻松", "value": "2" }
           ],
           "dynamic_desc": true,
           "descriptions": {
-            "default": "Standard is recommended. In aggressive mode, sunnypilot will follow lead cars closer and be more aggressive with the gas and brake. In relaxed mode sunnypilot will stay further away from lead cars. On supported cars, you can cycle through these personalities with your steering wheel distance button.",
-            "no_car": "Please start the vehicle to check compatibility.",
-            "no_longitudinal": "This feature requires longitudinal control to be available."
+            "default": "推荐使用标准模式。在激进模式下，sunnypilot将更接近前车，并在油门和制动方面更加激进。在轻松模式下，sunnypilot将与前车保持更远的距离。在支持的车辆上，您可以使用方向盘距离按钮在这些个性之间循环切换。",
+            "no_car": "请启动车辆以检查兼容性。",
+            "no_longitudinal": "此功能需要纵向控制可用。"
           },
           "description_conditions": {
             "no_car": {
@@ -220,11 +220,11 @@
             "allConditionsTrue": [
               {
                 "isOnroad": true,
-                "reason": "Start the vehicle to enable this setting"
+                "reason": "启动车辆以启用此设置"
               },
               {
                 "hasLongitudinalControl": true,
-                "reason": "Requires longitudinal control"
+                "reason": "需要纵向控制"
               }
             ]
           }
@@ -233,35 +233,35 @@
     },
     {
       "groupName": "safetyGroup",
-      "title": "Safety",
+      "title": "安全",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "IsLdwEnabled",
-          "title": "Enable Lane Departure Warnings",
-          "desc": "Receive alerts to steer back into the lane when your vehicle drifts over a detected lane line without a turn signal activated while driving over 31 mph (50 km/h).",
+          "title": "启用车道偏离警告",
+          "desc": "当您的车辆在没有激活转向灯的情况下超过检测到的车道线，且行驶速度超过31 mph（50 km/h）时，接收提醒以转向回到车道。",
           "icon": "../assets/icons/warning.png"
         },
         {
           "type": "toggle",
           "param": "AlwaysOnDM",
-          "title": "Always-On Driver Monitoring",
-          "desc": "Enable driver monitoring even when sunnypilot is not engaged.",
+          "title": "始终开启驾驶员监控",
+          "desc": "即使sunnypilot未接合时也启用驾驶员监控。",
           "icon": "../assets/icons/monitoring.png"
         }
       ]
     },
     {
       "groupName": "clusterPreferencesGroup",
-      "title": "BluePilot Cluster Preferences:",
+      "title": "BluePilot仪表盘偏好：",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "FordPrefSendHandsFreeCanMsg",
-          "title": "Show Hands-Free UI (On Supported Vehicles)",
-          "desc": "[BLUEPILOT] Enables hands-free UI for supported vehicles.",
+          "title": "显示免提UI（在支持的车辆上）",
+          "desc": "[BLUEPILOT] 为支持的车辆启用免提UI。",
           "hidden": false,
           "conditions": {
             "git_remote": ["any"],
@@ -271,8 +271,8 @@
         {
           "type": "toggle",
           "param": "FordPrefLaneDepartCanMsg",
-          "title": "Send Lane Departure Signals to Vehicle",
-          "desc": "[BLUEPILOT] Send Openpilot lane departure signals for native cluster alerts.",
+          "title": "向车辆发送车道偏离信号",
+          "desc": "[BLUEPILOT] 发送Openpilot车道偏离信号以进行原生仪表盘警报。",
           "hidden": false,
           "conditions": {
             "git_remote": ["any"],
@@ -283,20 +283,20 @@
     },
     {
       "groupName": "recordingGroup",
-      "title": "Recording",
+      "title": "录制",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "RecordFront",
-          "title": "Record and Upload Driver Camera",
-          "desc": "Upload data from the driver facing camera and help improve the driver monitoring algorithm.",
+          "title": "录制并上传驾驶员摄像头",
+          "desc": "上传来自面向驾驶员的摄像头的数据，帮助改进驾驶员监控算法。",
           "icon": "../assets/icons/monitoring.png",
           "needs_restart": true,
           "dynamic_desc": true,
           "descriptions": {
-            "default": "Upload data from the driver facing camera and help improve the driver monitoring algorithm.",
-            "needs_restart": "Upload data from the driver facing camera and help improve the driver monitoring algorithm. Changing this setting will restart openpilot if the car is powered on."
+            "default": "上传来自面向驾驶员的摄像头的数据，帮助改进驾驶员监控算法。",
+            "needs_restart": "上传来自面向驾驶员的摄像头的数据，帮助改进驾驶员监控算法。如果车辆已启动，更改此设置将重启openpilot。"
           },
           "description_conditions": {
             "needs_restart": {
@@ -315,14 +315,14 @@
         {
           "type": "toggle",
           "param": "RecordAudio",
-          "title": "Record and Upload Microphone Audio",
-          "desc": "Record and store microphone audio while driving. The audio will be included in the dashcam video in comma connect.",
+          "title": "录制并上传麦克风音频",
+          "desc": "在驾驶时录制并存储麦克风音频。音频将包含在comma connect中的行车记录仪视频中。",
           "icon": "../assets/icons/microphone.png",
           "needs_restart": true,
           "dynamic_desc": true,
           "descriptions": {
-            "default": "Record and store microphone audio while driving. The audio will be included in the dashcam video in comma connect.",
-            "needs_restart": "Record and store microphone audio while driving. The audio will be included in the dashcam video in comma connect. Changing this setting will restart openpilot if the car is powered on."
+            "default": "在驾驶时录制并存储麦克风音频。音频将包含在comma connect中的行车记录仪视频中。",
+            "needs_restart": "在驾驶时录制并存储麦克风音频。音频将包含在comma connect中的行车记录仪视频中。如果车辆已启动，更改此设置将重启openpilot。"
           },
           "description_conditions": {
             "needs_restart": {
@@ -342,28 +342,28 @@
     },
     {
       "groupName": "unitsGroup",
-      "title": "Units",
+      "title": "单位",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "IsMetric",
-          "title": "Use Metric System",
-          "desc": "Display speed in km/h instead of mph.",
+          "title": "使用公制系统",
+          "desc": "以km/h而不是mph显示速度。",
           "icon": "../assets/icons/metric.png"
         }
       ]
     },
     {
       "groupName": "bluepilotSystemGroup",
-      "title": "BluePilot System",
+      "title": "BluePilot系统",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "DisableGPSAlert",
-          "title": "Disable GPS Alert",
-          "desc": "[BluePilot] Disable the GPS alert. This is useful if you don't want to be alerted when the GPS signal is weak because of how your comma device is mounted.",
+          "title": "禁用GPS警报",
+          "desc": "[BluePilot] 禁用GPS警报。如果您不想因为comma设备的安装方式导致GPS信号弱时收到警报，这很有用。",
           "hidden": false
         }
       ]
