@@ -1,48 +1,48 @@
 {
   "type": "base",
-  "menuName": "Display",
+  "menuName": "显示",
   "menuIcon": "../../sunnypilot/selfdrive/assets/offroad/icon_display.png",
-  "menuDescription": "Display and Screen Settings",
+  "menuDescription": "显示和屏幕设置",
   "groups": [
     {
       "groupName": "screenBrightnessGroup",
-      "title": "Screen Brightness",
+      "title": "屏幕亮度",
       "controls": [
         {
           "type": "segmented_control",
           "param": "BPUiTextSize",
-          "title": "UI Text Size",
-          "desc": "Controls the size of text in BluePilot menus and controls.<br><br>You will be prompted to restart the UI after changing this setting.",
+          "title": "界面文字大小",
+          "desc": "控制BluePilot菜单和控制中的文字大小。<br><br>更改此设置后，系统将提示您重启界面。",
           "options": [
-            { "name": "Small", "value": "0" },
-            { "name": "Medium", "value": "1", "default": true },
-            { "name": "Large", "value": "2" }
+            { "name": "小", "value": "0" },
+            { "name": "中", "value": "1", "default": true },
+            { "name": "大", "value": "2" }
           ]
         },
         {
           "type": "toggle",
           "param": "OnroadScreenOffControl",
-          "title": "Onroad Screen: Reduced Brightness",
-          "desc": "Turn off device screen or reduce brightness after driving starts. It automatically brightens again when screen is touched or a visible alert is displayed."
+          "title": "行驶中屏幕：降低亮度",
+          "desc": "驾驶开始后关闭设备屏幕或降低亮度。触摸屏幕或显示可见警报时会自动恢复亮度。"
         },
         {
           "type": "selection",
           "param": "OnroadScreenOffTimer",
-          "title": "Onroad Brightness Delay",
-          "desc": "Time delay before turning off or dimming the screen during driving.",
+          "title": "行驶中亮度延迟",
+          "desc": "驾驶期间关闭或调暗屏幕前的延迟时间。",
           "options": [
-            { "name": "15 seconds", "value": "15" },
-            { "name": "30 seconds", "value": "30", "default": true },
-            { "name": "1 minute", "value": "60" },
-            { "name": "2 minutes", "value": "120" },
-            { "name": "3 minutes", "value": "180" },
-            { "name": "4 minutes", "value": "240" },
-            { "name": "5 minutes", "value": "300" },
-            { "name": "6 minutes", "value": "360" },
-            { "name": "7 minutes", "value": "420" },
-            { "name": "8 minutes", "value": "480" },
-            { "name": "9 minutes", "value": "540" },
-            { "name": "10 minutes", "value": "600" }
+            { "name": "15秒", "value": "15" },
+            { "name": "30秒", "value": "30", "default": true },
+            { "name": "1分钟", "value": "60" },
+            { "name": "2分钟", "value": "120" },
+            { "name": "3分钟", "value": "180" },
+            { "name": "4分钟", "value": "240" },
+            { "name": "5分钟", "value": "300" },
+            { "name": "6分钟", "value": "360" },
+            { "name": "7分钟", "value": "420" },
+            { "name": "8分钟", "value": "480" },
+            { "name": "9分钟", "value": "540" },
+            { "name": "10分钟", "value": "600" }
           ],
           "visibleConditions": {
             "allConditionsTrue": [
@@ -56,10 +56,10 @@
         {
           "type": "selection",
           "param": "OnroadScreenOffBrightness",
-          "title": "Onroad Brightness",
-          "desc": "Brightness level when screen is dimmed. Set to 0 to turn screen completely off.",
+          "title": "行驶中亮度",
+          "desc": "屏幕调暗时的亮度级别。设置为0可完全关闭屏幕。",
           "options": [
-            { "name": "Screen Off", "value": "0", "default": true },
+            { "name": "屏幕关闭", "value": "0", "default": true },
             { "name": "10%", "value": "10" },
             { "name": "20%", "value": "20" },
             { "name": "30%", "value": "30" },
@@ -84,16 +84,16 @@
     },
     {
       "groupName": "globalSettingsGroup",
-      "title": "Global Settings",
+      "title": "全局设置",
       "controls": [
         {
           "type": "selection",
           "param": "Brightness",
-          "title": "Global Brightness",
-          "desc": "Overrides the brightness of the device. This applies to both onroad and offroad screens.",
+          "title": "全局亮度",
+          "desc": "覆盖设备的亮度设置。这适用于行驶中和离线时的屏幕。",
           "options": [
-            { "name": "Auto (Dark)", "value": "1" },
-            { "name": "Auto", "value": "0", "default": true },
+            { "name": "自动（暗）", "value": "1" },
+            { "name": "自动", "value": "0", "default": true },
             { "name": "10%", "value": "10" },
             { "name": "20%", "value": "20" },
             { "name": "30%", "value": "30" },
@@ -109,22 +109,22 @@
         {
           "type": "selection",
           "param": "InteractivityTimeout",
-          "title": "Interactivity Timeout",
-          "desc": "Apply a custom timeout for settings UI.<br>This is the time after which settings UI closes automatically if user is not interacting with the screen.",
+          "title": "交互超时",
+          "desc": "为设置界面应用自定义超时时间。<br>如果用户不与屏幕交互，设置界面将在此时间后自动关闭。",
           "options": [
-            { "name": "Default", "value": "0", "default": true },
-            { "name": "10 seconds", "value": "10" },
-            { "name": "20 seconds", "value": "20" },
-            { "name": "30 seconds", "value": "30" },
-            { "name": "40 seconds", "value": "40" },
-            { "name": "50 seconds", "value": "50" },
-            { "name": "1 minute", "value": "60" },
-            { "name": "1 minute 10 seconds", "value": "70" },
-            { "name": "1 minute 20 seconds", "value": "80" },
-            { "name": "1 minute 30 seconds", "value": "90" },
-            { "name": "1 minute 40 seconds", "value": "100" },
-            { "name": "1 minute 50 seconds", "value": "110" },
-            { "name": "2 minutes", "value": "120" }
+            { "name": "默认", "value": "0", "default": true },
+            { "name": "10秒", "value": "10" },
+            { "name": "20秒", "value": "20" },
+            { "name": "30秒", "value": "30" },
+            { "name": "40秒", "value": "40" },
+            { "name": "50秒", "value": "50" },
+            { "name": "1分钟", "value": "60" },
+            { "name": "1分10秒", "value": "70" },
+            { "name": "1分20秒", "value": "80" },
+            { "name": "1分30秒", "value": "90" },
+            { "name": "1分40秒", "value": "100" },
+            { "name": "1分50秒", "value": "110" },
+            { "name": "2分钟", "value": "120" }
           ]
         }
       ]
