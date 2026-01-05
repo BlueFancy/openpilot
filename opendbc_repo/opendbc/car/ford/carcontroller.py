@@ -40,24 +40,9 @@ T_IDXS = [index_function(idx, max_val=10.0) for idx in range(IDX_N)]  # 时间�
 
 def apply_ford_curvature_limits(apply_curvature, apply_curvature_last, current_curvature, v_ego_raw, steering_angle, lat_active, CP):
   # 低速时不进行混合，因为缺乏扭矩缠绕且当前曲率不准确
-  # 注意：
-  # 福特Q3（非CAN-FD）可能会感觉像是在"等待"才开始转向，因为我们将请求的曲率
-  # 限制在接近测量曲率（从yawRate推导）的范围内。在直路上，测量曲率在车辆实际
-  # 开始转向之前一直保持在接近0，所以紧密的限制会强制命令"缓慢爬行"进入转弯。
-  #
-  # 为了保持直线稳定性，当请求较小时我们仍然紧密限制，但随着请求曲率的增长，
-  # 我们*动态扩大*允许的误差窗口。这在不使直线驾驶振荡的情况下提高了转向响应速度。
   if v_ego_raw > 9:
-    req_curv_mag = abs(apply_curvature)
-    extra_err = float(np.interp(req_curv_mag,
-                                # 曲率 [1/m]
-                                [0.0, 0.004, 0.010, 0.020],
-                                # 额外允许的误差 [1/m]
-                                [0.0, 0.0015, 0.0035, 0.0060]))
-    curvature_err = CarControllerParams.CURVATURE_ERROR + extra_err
-    apply_curvature = np.clip(apply_curvature,
-                              current_curvature - curvature_err,
-                              current_curvature + curvature_err)
+    apply_curvature = np.clip(apply_curvature, current_curvature - CarControllerParams.CURVATURE_ERROR,
+                              current_curvature + CarControllerParams.CURVATURE_ERROR)
 
   # 在驾驶员扭矩限制后应用曲率变化速率限制
   apply_curvature = apply_std_steer_angle_limits(apply_curvature, apply_curvature_last, v_ego_raw, steering_angle, lat_active, CarControllerParams.ANGLE_LIMITS)
@@ -159,6 +144,12 @@ class CarController(CarControllerBase):
     self.path_angle_filter_samples = 3 # 移动平均滤波器使用的样本数量
     self.path_angle_deque = deque(maxlen=self.path_angle_filter_samples) # 用于保存样本的双端队列
     self.path_angle_wheel_angle_conversion = (np.pi/180) # 度到弧度的转换系数
+
+    # 弯道减速预测可靠性相关变量（用于处理预测不准的情况）
+    self.predicted_curvature_history = deque(maxlen=10)  # 保存最近10帧的预测曲率历史
+    self.current_curvature_history = deque(maxlen=10)  # 保存最近10帧的当前曲率历史
+    self.prediction_confidence = 0.5  # 预测置信度，初始值0.5（中等）
+    self.last_predicted_curvature = 0.0  # 上一帧的预测曲率
 
     # 路径角度低曲率相关变量
     self.LC_PID_GAIN_CAN = 5.0  # CAN平台低曲率PID增益
@@ -705,6 +696,95 @@ class CarController(CarControllerBase):
         # 原厂系统已被观察到将刹车加速度限制为5 m/s^3，
         # 然而即使是3.5 m/s^3也会在阶跃响应中引起一些超调
         accel = max(accel, self.accel - (3.5 * CarControllerParams.ACC_CONTROL_STEP * DT_CTRL))
+
+        # [弯道提前减速] 使用预测曲率提前2-3秒减速，避免在弯道中才开始减速
+        # 问题：原逻辑使用当前曲率，高速（100 km/h）进入弯道时减速太晚，存在安全风险
+        # 解决方案：使用模型预测的2.0秒和3.0秒后的曲率来提前预测弯道
+        # 效果：在进入弯道前2-3秒开始减速，特别适用于高速进入弯道的情况
+        # 安全机制：添加预测可靠性检查，避免误减速
+        if self.model is not None and len(self.model.orientation.x) >= 17:
+          # 计算未来2.0秒和3.0秒后的预测曲率
+          curvatures = np.array(self.model.orientationRate.z) / max(0.01, CS.out.vEgoRaw)
+          predicted_curvature_2s = interp(2.0, ModelConstants.T_IDXS, curvatures)
+          predicted_curvature_3s = interp(3.0, ModelConstants.T_IDXS, curvatures)
+          # 使用两者中的最大值以确保安全
+          max_predicted_curvature = max(abs(predicted_curvature_2s), abs(predicted_curvature_3s))
+
+          # 获取当前曲率用于验证预测可靠性（从CAN总线数据计算）
+          current_curvature = -CS.out.yawRate / max(CS.out.vEgoRaw, 0.1)
+          current_curvature_abs = abs(current_curvature)
+
+          # 更新历史记录
+          self.predicted_curvature_history.append(max_predicted_curvature)
+          self.current_curvature_history.append(current_curvature_abs)
+
+          # 计算预测置信度（基于多个因素）
+          prediction_confidence = 0.5  # 初始置信度
+
+          # 因素1：预测曲率的稳定性（如果预测波动大，降低置信度）
+          if len(self.predicted_curvature_history) >= 5:
+            predicted_std = np.std(list(self.predicted_curvature_history))
+            # 如果标准差小于0.002，认为预测稳定，置信度+0.2
+            if predicted_std < 0.002:
+              prediction_confidence += 0.2
+            # 如果标准差大于0.005，认为预测不稳定，置信度-0.3
+            elif predicted_std > 0.005:
+              prediction_confidence -= 0.3
+
+          # 因素2：预测与当前曲率的一致性（如果当前已经在弯道中，预测更可信）
+          if current_curvature_abs > 0.002:
+            # 当前已经在弯道中，如果预测曲率也较大，置信度+0.2
+            if max_predicted_curvature > current_curvature_abs * 0.5:
+              prediction_confidence += 0.2
+          else:
+            # 当前在直道上，如果预测突然出现大曲率，可能是误预测，降低置信度
+            if max_predicted_curvature > 0.01:
+              prediction_confidence -= 0.3
+
+          # 因素3：预测曲率的变化趋势（如果预测持续增大，置信度提高）
+          if len(self.predicted_curvature_history) >= 3:
+            recent_trend = list(self.predicted_curvature_history)[-3:]
+            if recent_trend[-1] > recent_trend[0] * 1.2:  # 持续增长
+              prediction_confidence += 0.1
+            elif abs(recent_trend[-1] - recent_trend[0]) < 0.001:  # 基本不变
+              prediction_confidence += 0.1  # 稳定的预测更可信
+
+          # 限制置信度在0.1到1.0之间
+          prediction_confidence = max(0.1, min(1.0, prediction_confidence))
+          self.prediction_confidence = prediction_confidence
+
+          v_ego_ms = CS.out.vEgoRaw
+          # 仅在速度 > 5.0 m/s (18 km/h) 且预测曲率 > 0.003 时应用（仅针对显著弯道）
+          # 并且预测置信度 > 0.3（避免在预测不可靠时误减速）
+          if v_ego_ms > 5.0 and max_predicted_curvature > 0.003 and prediction_confidence > 0.3:
+            # 计算所需的横向加速度：a = v² × curvature
+            required_lat_accel = v_ego_ms * v_ego_ms * max_predicted_curvature
+
+            # 目标横向加速度限制（舒适且安全）
+            max_lat_accel = 3.5  # m/s²
+
+            if required_lat_accel > max_lat_accel:
+              # 计算目标速度：target_speed = √(max_lat_accel / curvature)
+              target_speed = math.sqrt(max_lat_accel / max_predicted_curvature) if max_predicted_curvature > 0 else v_ego_ms
+
+              # 计算达到目标速度所需的减速度
+              # 使用2.5秒的预判时间来计算减速度（2-3秒之间取中间值）
+              look_ahead_time = 2.5  # 秒
+              speed_reduction_needed = max(0, v_ego_ms - target_speed)
+              curve_decel = speed_reduction_needed / look_ahead_time
+
+              # 根据预测置信度调整减速度强度
+              # 置信度高时使用更多预测减速，置信度低时更保守
+              confidence_factor = interp(prediction_confidence, [0.3, 0.7, 1.0], [0.3, 0.5, 0.7])
+              
+              # 应用弯道减速度，但不超过最大减速度限制
+              # 混合策略：根据置信度动态调整预测减速和原始请求的比例
+              curve_decel = min(curve_decel, 2.0)  # 限制减速度在2.0 m/s²以内
+              # 置信度越高，使用更多预测减速；置信度越低，保留更多原始请求
+              accel = accel * (1.0 - confidence_factor) + (accel - curve_decel) * confidence_factor
+
+          # 更新上一帧的预测曲率
+          self.last_predicted_curvature = max_predicted_curvature
 
       accel = float(np.clip(accel, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX))
       gas = float(np.clip(gas, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX))
