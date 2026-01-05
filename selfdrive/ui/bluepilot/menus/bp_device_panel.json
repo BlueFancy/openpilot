@@ -1,8 +1,8 @@
 {
   "_comment": "BluePilot Device Settings - Standardized UI for device controls migrated from SunnyPilot",
-  "menuName": "Device",
+  "menuName": "设备",
   "menuIcon": "icon_device.png",
-  "menuDescription": "Device Settings",
+  "menuDescription": "设备设置",
   "persistentParams": [],
   "clearOnManagerStartParams": [],
   "clearOnOnroadTransitionParams": [],
@@ -10,22 +10,22 @@
   "groups": [
     {
       "groupName": "quickActionsGroup",
-      "title": "Quick Actions",
+      "title": "快速操作",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "OffroadMode",
-          "title": "Always Offroad",
-          "desc": "Prevent the device from going onroad. When enabled, openpilot will not engage.",
+          "title": "始终离线模式",
+          "desc": "防止设备进入在线状态。启用后，openpilot将不会启动。",
           "confirm": true,
-          "confirm_text": "Are you sure you want to toggle Always Offroad mode?",
-          "confirm_yes_text": "Yes",
-          "confirm_no_text": "No",
+          "confirm_text": "您确定要切换始终离线模式吗？",
+          "confirm_yes_text": "是",
+          "confirm_no_text": "否",
           "dynamic_title": true,
           "titles": {
-            "enabled": "Exit Always Offroad",
-            "disabled": "Enable Always Offroad"
+            "enabled": "退出始终离线模式",
+            "disabled": "启用始终离线模式"
           },
           "dynamic_styling": true,
           "styles": {
@@ -40,65 +40,65 @@
         {
           "type": "toggle",
           "param": "QuietMode",
-          "title": "Quiet Mode",
-          "desc": "Mutes all notification sounds."
+          "title": "静音模式",
+          "desc": "静音所有通知声音。"
         },
         {
           "type": "command_button",
-          "title": "Driver Camera Preview",
-          "desc": "Preview the driver-facing camera.",
-          "button_text": "PREVIEW",
+          "title": "驾驶员摄像头预览",
+          "desc": "预览面向驾驶员的摄像头。",
+          "button_text": "预览",
           "action": "show_driver_camera",
           "webSupported": false
         },
         {
           "type": "command_button",
-          "title": "Training Guide",
-          "desc": "Review the training guide to learn how to use openpilot.",
-          "button_text": "REVIEW",
+          "title": "培训指南",
+          "desc": "查看培训指南以学习如何使用openpilot。",
+          "button_text": "查看",
           "action": "show_training_guide",
           "confirm": true,
-          "confirm_text": "Are you sure you want to review the training guide?",
-          "confirm_yes_text": "Review",
-          "confirm_no_text": "Cancel",
+          "confirm_text": "您确定要查看培训指南吗？",
+          "confirm_yes_text": "查看",
+          "confirm_no_text": "取消",
           "connect_signal": "reviewTrainingGuide",
           "webSupported": false
         },
         {
           "type": "command_button",
-          "title": "Language",
-          "desc": "Change the language of the device.",
-          "button_text": "CHANGE",
+          "title": "语言",
+          "desc": "更改设备语言。",
+          "button_text": "更改",
           "action": "show_language_selector",
           "connect_signal": "showLanguageSelector",
           "webSupported": false
         },
         {
           "type": "command_button",
-          "title": "Regulatory",
-          "desc": "View regulatory and compliance information.",
-          "button_text": "VIEW",
+          "title": "法规信息",
+          "desc": "查看法规和合规信息。",
+          "button_text": "查看",
           "action": "show_regulatory",
           "connect_signal": "showRegulatory",
           "webSupported": false
         },
         {
           "type": "command_button",
-          "title": "Reset Settings",
-          "desc": "Reset all settings to their default values. This cannot be undone.",
-          "button_text": "RESET",
+          "title": "重置设置",
+          "desc": "将所有设置重置为默认值。此操作无法撤销。",
+          "button_text": "重置",
           "action": "reset_settings",
           "confirm": true,
-          "confirm_text": "Are you sure you want to reset all sunnypilot settings to default? Once the settings are reset, there is no going back.",
-          "confirm_yes_text": "Reset",
-          "confirm_no_text": "Cancel"
+          "confirm_text": "您确定要将所有sunnypilot设置重置为默认值吗？一旦重置，将无法恢复。",
+          "confirm_yes_text": "重置",
+          "confirm_no_text": "取消"
         },
         {
           "type": "file_viewer",
           "path": "CHANGELOGS_BP.md",
-          "title": "BluePilot Changelog",
-          "desc": "View the latest changes and updates for BluePilot",
-          "header": "BluePilot Changelog",
+          "title": "BluePilot更新日志",
+          "desc": "查看BluePilot的最新更改和更新",
+          "header": "BluePilot更新日志",
           "webSupported": false,
           "conditions": {
             "git_remote": ["ford-op/sp-dev-c3"],
@@ -107,8 +107,8 @@
         },
         {
           "type": "recent_changes",
-          "title": "Recent Changes",
-          "desc": "View recent changes and updates for the current version",
+          "title": "最近更改",
+          "desc": "查看当前版本的最近更改和更新",
           "conditions": {
             "git_remote": ["any"],
             "git_branch": []
@@ -118,14 +118,14 @@
     },
     {
       "groupName": "calibrationGroup",
-      "title": "Calibration",
+      "title": "校准",
       "enableResetButton": false,
       "controls": [
         {
           "type": "command_button",
-          "title": "Reset Calibration",
-          "desc": "openpilot is continuously calibrating, resetting is rarely required. Resetting calibration will restart openpilot if the car is powered on.",
-          "button_text": "RESET",
+          "title": "重置校准",
+          "desc": "openpilot持续进行校准，很少需要重置。如果车辆已启动，重置校准将重启openpilot。",
+          "button_text": "重置",
           "action": "remove_params",
           "params": [
             "CalibrationParams",
@@ -133,73 +133,73 @@
             "LiveParameters"
           ],
           "confirm": true,
-          "confirm_text": "Are you sure you want to reset calibration?",
-          "confirm_yes_text": "Reset",
-          "confirm_no_text": "Cancel"
+          "confirm_text": "您确定要重置校准吗？",
+          "confirm_yes_text": "重置",
+          "confirm_no_text": "取消"
         }
       ]
     },
 
     {
       "groupName": "deviceSettingsGroup",
-      "title": "Device Settings",
+      "title": "设备设置",
       "enableResetButton": false,
       "controls": [
         {
           "type": "selection",
           "param": "MaxTimeOffroad",
-          "title": "Max Time Offroad",
-          "desc": "Device will automatically shutdown after set time once the engine is turned off. (30h is the default)",
+          "title": "最大离线时间",
+          "desc": "发动机关闭后，设备将在设定时间后自动关机。（默认30小时）",
           "options": [
-            { "name": "Always On", "value": "0" },
-            { "name": "5m", "value": "5" },
-            { "name": "10m", "value": "10" },
-            { "name": "15m", "value": "15" },
-            { "name": "30m", "value": "30" },
-            { "name": "1h", "value": "60" },
-            { "name": "2h", "value": "120" },
-            { "name": "3h", "value": "180" },
-            { "name": "5h", "value": "300" },
-            { "name": "10h", "value": "600" },
-            { "name": "24h", "value": "1440" },
-            { "name": "30h (default)", "value": "1800", "default": true }
+            { "name": "始终开启", "value": "0" },
+            { "name": "5分钟", "value": "5" },
+            { "name": "10分钟", "value": "10" },
+            { "name": "15分钟", "value": "15" },
+            { "name": "30分钟", "value": "30" },
+            { "name": "1小时", "value": "60" },
+            { "name": "2小时", "value": "120" },
+            { "name": "3小时", "value": "180" },
+            { "name": "5小时", "value": "300" },
+            { "name": "10小时", "value": "600" },
+            { "name": "24小时", "value": "1440" },
+            { "name": "30小时（默认）", "value": "1800", "default": true }
           ]
         },
         {
           "type": "segmented_control",
           "param": "DeviceBootMode",
-          "title": "Wake-Up Behavior",
-          "desc": "Controls state of the device after boot/sleep.<br><br>⁍ Default: Device will boot/wake-up normally & will be ready to engage.<br>⁍ Offroad: Device will be in Always Offroad mode after boot/wake-up.",
+          "title": "唤醒行为",
+          "desc": "控制设备启动/唤醒后的状态。<br><br>⁍ 默认：设备将正常启动/唤醒，并准备就绪。<br>⁍ 离线：设备启动/唤醒后将处于始终离线模式。",
           "options": [
-            { "name": "Default", "value": "0", "default": true },
-            { "name": "Offroad", "value": "1" }
+            { "name": "默认", "value": "0", "default": true },
+            { "name": "离线", "value": "1" }
           ]
         }
       ]
     },
     {
       "groupName": "deviceInfoGroup",
-      "title": "Device/Software Info",
+      "title": "设备/软件信息",
       "enableResetButton": false,
       "controls": [
         {
           "type": "static_param_display",
           "param": "DongleId",
-          "title": "Dongle ID",
+          "title": "设备ID",
           "desc": "",
           "webSupported": false
         },
         {
           "type": "static_param_display",
           "param": "HardwareSerial",
-          "title": "Serial",
+          "title": "序列号",
           "desc": "",
           "webSupported": false
         },
         {
           "type": "file_param_display",
           "file": "../../BPVERSION",
-          "title": "BluePilot Version",
+          "title": "BluePilot版本",
           "desc": "",
           "prefix": "v",
           "webSupported": false
@@ -207,7 +207,7 @@
         {
           "type": "file_param_display",
           "file": "COMMA_VERSION",
-          "title": "Openpilot Version",
+          "title": "Openpilot版本",
           "desc": "",
           "webSupported": false
         }
@@ -215,21 +215,21 @@
     },
     {
       "groupName": "powerGroup",
-      "title": "Power",
+      "title": "电源",
       "enableResetButton": false,
       "controls": [
         {
           "type": "command_button",
-          "title": "Reboot",
-          "desc": "Reboot the device.",
-          "button_text": "REBOOT",
+          "title": "重启",
+          "desc": "重启设备。",
+          "button_text": "重启",
           "action": "set_param",
           "param": "DoReboot",
           "value": "1",
           "confirm": true,
-          "confirm_text": "Are you sure you want to reboot?",
-          "confirm_yes_text": "Reboot",
-          "confirm_no_text": "Cancel",
+          "confirm_text": "您确定要重启吗？",
+          "confirm_yes_text": "重启",
+          "confirm_no_text": "取消",
           "button_style": {
             "background_color": "#FF8C00",
             "background_color_pressed": "#FFA500",
@@ -238,16 +238,16 @@
         },
         {
           "type": "command_button",
-          "title": "Power Off",
-          "desc": "Power off the device.",
-          "button_text": "POWER OFF",
+          "title": "关机",
+          "desc": "关闭设备电源。",
+          "button_text": "关机",
           "action": "set_param",
           "param": "DoShutdown",
           "value": "1",
           "confirm": true,
-          "confirm_text": "Are you sure you want to power off?",
-          "confirm_yes_text": "Power Off",
-          "confirm_no_text": "Cancel",
+          "confirm_text": "您确定要关机吗？",
+          "confirm_yes_text": "关机",
+          "confirm_no_text": "取消",
           "button_style": {
             "background_color": "#E22C2C",
             "background_color_pressed": "#FF2424",
@@ -256,13 +256,13 @@
         },
         {
           "type": "restart_ui",
-          "title": "Restart Interface",
-          "desc": "Restart the sunnypilot user interface to apply changes or resolve display issues.",
-          "button_text": "RESTART UI",
+          "title": "重启界面",
+          "desc": "重启sunnypilot用户界面以应用更改或解决显示问题。",
+          "button_text": "重启界面",
           "confirm": true,
-          "confirm_text": "Are you sure you want to restart the user interface?<br><br>The interface will be unavailable for a few seconds.",
-          "confirm_yes_text": "Restart",
-          "confirm_no_text": "Cancel"
+          "confirm_text": "您确定要重启用户界面吗？<br><br>界面将在几秒钟内不可用。",
+          "confirm_yes_text": "重启",
+          "confirm_no_text": "取消"
         }
       ]
     }
