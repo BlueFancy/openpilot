@@ -2,23 +2,23 @@
   "type": "navigation",
   "menuName": "BluePilot",
   "menuIcon": "icon_ford.png",
-  "menuDescription": "BluePilot Panel",
+  "menuDescription": "BluePilot面板",
   "equalWidth": true,
   "iconPosition": "top",
   "tabs": [
     {
-      "name": "Debug",
+      "name": "调试",
       "icon": "../assets/offroad/icon_debug.png",
       "groups": [
         {
           "groupName": "paramViewerGroup",
-          "title": "Parameter Viewer",
+          "title": "参数查看器",
           "enableResetButton": false,
           "controls": [
             {
               "type": "param_list_viewer",
-              "title": "All Parameters",
-              "desc": "View all available parameters in the system",
+              "title": "所有参数",
+              "desc": "查看系统中所有可用参数",
               "hidden": false,
               "conditions": {
                 "git_remote": ["ford-op/sp-dev-c3"],
@@ -28,8 +28,8 @@
             {
               "type": "param_viewer",
               "param": "LiveParameters",
-              "title": "Live Parameters",
-              "desc": "Displays live parameters",
+              "title": "实时参数",
+              "desc": "显示实时参数",
               "conditions": {
                 "git_remote": ["ford-op/sp-dev-c3"],
                 "git_branch": []
@@ -39,7 +39,7 @@
         },
         {
           "groupName": "debugPreferencesGroup",
-          "title": "Debug Preferences:",
+          "title": "调试偏好：",
           "enableResetButton": false,
           "keepScreenAwake": true,
           "controls": [
@@ -57,20 +57,20 @@
         },
         {
           "groupName": "utilityCommandsGroup",
-          "title": "Utility Commands:",
+          "title": "实用命令：",
           "enableResetButton": false,
           "controls": [
             {
               "type": "command_button",
               "command": "echo \"Starting process...\" && for i in {1..5}; do echo \"[$(date '+%H:%M:%S')] Processing batch $i/5...\"; sleep 1; echo \"  -> Completed subtask $i\"; sleep 1; done && echo \"All tasks completed successfully!\"",
               "working_dir": "/data/openpilot",
-              "title": "Test Command",
-              "desc": "Test Command",
-              "button_text": "Test Command",
+              "title": "测试命令",
+              "desc": "测试命令",
+              "button_text": "测试命令",
               "confirm": true,
-              "confirm_text": "Are you sure you want to run this command?",
-              "confirm_button_text": "Run",
-              "cancel_button_text": "Cancel",
+              "confirm_text": "您确定要运行此命令吗？",
+              "confirm_button_text": "运行",
+              "cancel_button_text": "取消",
               "hidden": true,
               "conditions": {
                 "git_remote": ["ford-op/sp-dev-c3"],
@@ -81,9 +81,9 @@
               "type": "command_button",
               "command": "wget https://raw.githubusercontent.com/tonesto7/op-utilities/main/CommaUtility.sh && chmod +x /data/CommaUtility.sh",
               "working_dir": "/data",
-              "title": "Install Comma Utility",
-              "desc": "Install Comma Utility",
-              "button_text": "Install",
+              "title": "安装Comma工具",
+              "desc": "安装Comma工具",
+              "button_text": "安装",
               "confirm": false,
               "hidden": false,
               "OnlyOnCommaDevice": true,
@@ -95,9 +95,9 @@
             {
               "type": "file_viewer",
               "path": "/data/community/crashes/error.txt",
-              "title": "Recent Crashes",
-              "desc": "View the crashes file",
-              "button_text": "View Error",
+              "title": "最近崩溃",
+              "desc": "查看崩溃文件",
+              "button_text": "查看错误",
               "confirm": false,
               "hidden": false,
               "conditions": {
@@ -108,9 +108,9 @@
             {
               "type": "file_viewer",
               "path": "/data/logs/bp_logger/bluepilot.log",
-              "title": "BluePilot Log",
-              "desc": "View the BluePilot log",
-              "button_text": "View Log",
+              "title": "BluePilot日志",
+              "desc": "查看BluePilot日志",
+              "button_text": "查看日志",
               "confirm": false,
               "hidden": true,
               "conditions": {
@@ -122,9 +122,9 @@
               "type": "command_button",
               "command": "ifconfig",
               "working_dir": "/data/openpilot",
-              "title": "Get Network Info",
-              "desc": "Get network info using ifconfig",
-              "button_text": "Get Info",
+              "title": "获取网络信息",
+              "desc": "使用ifconfig获取网络信息",
+              "button_text": "获取信息",
               "confirm": false,
               "hidden": false,
               "conditions": {
