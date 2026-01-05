@@ -1,8 +1,8 @@
 {
   "_comment": "This configuration file defines all statistics panels, groups, and controls.",
-  "menuName": "Statistics",
+  "menuName": "统计",
   "menuIcon": "icon_statistics.png",
-  "menuDescription": "Statistics Panel",
+  "menuDescription": "统计面板",
   "persistentParams": [],
   "clearOnManagerStartParams": [],
   "clearOnOnroadTransitionParams": [],
@@ -17,20 +17,20 @@
       "controls": [
         {
           "type": "stats_card_system",
-          "title": "System Resources",
-          "desc": "Shows system resources",
+          "title": "系统资源",
+          "desc": "显示系统资源",
           "hidden": false
         },
         {
           "type": "stats_card_connectivity",
-          "title": "Connectivity",
-          "desc": "Shows connectivity statistics",
+          "title": "连接性",
+          "desc": "显示连接性统计",
           "hidden": false
         },
         {
           "type": "stats_card_storage",
-          "title": "Storage",
-          "desc": "Shows storage usage and details",
+          "title": "存储",
+          "desc": "显示存储使用情况和详细信息",
           "hidden": false
         }
       ]
