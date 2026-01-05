@@ -59,10 +59,12 @@ class CarState(CarStateBase, MadsCarState):
     ret = structs.CarState()
     ret_sp = structs.CarStateSP()
 
-    # [4.0修改] 使用BrakeSnData_5而不是ParkAid_Data（适配您的车型）
+    # 恢复原版逻辑：使用ParkAid_Data进行完整的传感器验证
     if self.CP.flags & FordFlags.ALT_STEER_ANGLE:
       self.vehicle_sensors_valid = (
-        int((cp.vl["BrakeSnData_5"]["SteWhlRelInit_An_Sns"] + 1600) * 10) not in (32766, 32767)
+        int((cp.vl["ParkAid_Data"]["ExtSteeringAngleReq2"] + 1000) * 10) not in (32766, 32767)
+        and cp.vl["ParkAid_Data"]["EPASExtAngleStatReq"] == 0
+        and cp.vl["ParkAid_Data"]["ApaSys_D_Stat"] in (0, 1)
       )
     else:
    	  # Occasionally on startup, the ABS module recalibrates the steering pinion offset, so we need to block engagement
@@ -88,11 +90,11 @@ class CarState(CarStateBase, MadsCarState):
     ret.parkingBrake = cp.vl["DesiredTorqBrk"]["PrkBrkStatus"] in (1, 2)
 
     # steering wheel
-    # [4.0修改] 使用BrakeSnData_5而不是ParkAid_Data（适配您的车型）
+    # 恢复原版逻辑：使用ParkAid_Data进行转向角度计算
     if self.CP.flags & FordFlags.ALT_STEER_ANGLE:
       steering_angle_init = cp.vl["SteeringPinion_Data_Alt"]["StePinRelInit_An_Sns"]
       if self.vehicle_sensors_valid:
-        steering_angle_est = cp.vl["BrakeSnData_5"]["SteWhlRelInit_An_Sns"]
+        steering_angle_est = cp.vl["ParkAid_Data"]["ExtSteeringAngleReq2"]
         self.steering_angle_offset_deg = steering_angle_est - steering_angle_init
       ret.steeringAngleDeg = steering_angle_init + self.steering_angle_offset_deg
     else:
@@ -348,11 +350,11 @@ class CarState(CarStateBase, MadsCarState):
       print("Battery_Traction_4_FD1 signal exists (get_can_parser)")
       pt_messages.append(("Battery_Traction_4_FD1", 10))
 
-    # [4.0修改] 使用BrakeSnData_5而不是ParkAid_Data（适配您的车型）
+    # 恢复原版逻辑：使用ParkAid_Data进行传感器验证和转向角度计算
     if CP.flags & FordFlags.ALT_STEER_ANGLE:
       pt_messages += [
         ("SteeringPinion_Data_Alt", 100),
-        ("BrakeSnData_5", 50),  # 4.0修改：使用BrakeSnData_5
+        ("ParkAid_Data", 50),  # 恢复使用ParkAid_Data
         ("TransGearData", 10),
       ]
     else:
@@ -414,3 +416,4 @@ class CarState(CarStateBase, MadsCarState):
       Bus.cam: CANParser(DBC[CP.carFingerprint][Bus.pt], cam_messages, CanBus(CP).camera),
     }
 
+ 
