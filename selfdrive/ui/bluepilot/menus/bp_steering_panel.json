@@ -1,26 +1,26 @@
 {
   "type": "base",
-  "menuName": "Steering",
+  "menuName": "转向",
   "menuIcon": "../../sunnypilot/selfdrive/assets/offroad/icon_lateral.png",
-  "menuDescription": "Steering and Lateral Control Settings",
+  "menuDescription": "转向和横向控制设置",
   "groups": [
     {
       "groupName": "madsGroup",
-      "title": "MADS (Modular Assistive Driving System)",
+      "title": "MADS（模块化辅助驾驶系统）",
       "controls": [
         {
           "type": "toggle",
           "param": "Mads",
-          "title": "Modular Assistive Driving System (MADS)",
-          "desc": "Enable the beloved MADS feature. Disable toggle to revert back to stock sunnypilot engagement/disengagement.",
+          "title": "模块化辅助驾驶系统 (MADS)",
+          "desc": "启用备受喜爱的MADS功能。禁用开关可恢复到原始sunnypilot接合/解除接合。",
           "icon": "../assets/offroad/icon_blank.png",
           "confirm": true,
           "dynamic_desc": true,
           "descriptions": {
-            "no_car": "Start the vehicle to check compatibility.\n\nEnables independent engagements of Automatic Lane Centering (ALC) and Adaptive Cruise Control (ACC).",
-            "limited_compatibility": "This platform supports limited MADS settings.\n\nEnables independent engagements of Automatic Lane Centering (ALC) and Adaptive Cruise Control (ACC).",
-            "full_compatibility": "This platform supports all MADS settings.\n\nEnables independent engagements of Automatic Lane Centering (ALC) and Adaptive Cruise Control (ACC).",
-            "default": "Enables independent engagements of Automatic Lane Centering (ALC) and Adaptive Cruise Control (ACC)."
+            "no_car": "启动车辆以检查兼容性。\n\n启用自动车道居中（ALC）和自适应巡航控制（ACC）的独立接合。",
+            "limited_compatibility": "此平台支持有限的MADS设置。\n\n启用自动车道居中（ALC）和自适应巡航控制（ACC）的独立接合。",
+            "full_compatibility": "此平台支持所有MADS设置。\n\n启用自动车道居中（ALC）和自适应巡航控制（ACC）的独立接合。",
+            "default": "启用自动车道居中（ALC）和自适应巡航控制（ACC）的独立接合。"
           },
           "description_conditions": {
             "no_car": {
@@ -48,14 +48,14 @@
         {
           "type": "toggle",
           "param": "MadsMainCruiseAllowed",
-          "title": "Toggle with Main Cruise",
-          "desc": "Note: For vehicles without LFA/LKAS button, disabling this will prevent lateral control engagement.",
+          "title": "与主巡航联动",
+          "desc": "注意：对于没有LFA/LKAS按钮的车辆，禁用此选项将阻止横向控制接合。",
           "icon": "../assets/offroad/icon_blank.png",
           "dynamic_desc": true,
           "descriptions": {
-            "no_car": "Start the vehicle to check vehicle compatibility.\n\nNote: For vehicles without LFA/LKAS button, disabling this will prevent lateral control engagement.",
-            "limited_brand": "This feature defaults to OFF, and does not allow selection due to vehicle limitations.\n\nNote: For vehicles without LFA/LKAS button, disabling this will prevent lateral control engagement.",
-            "default": "Note: For vehicles without LFA/LKAS button, disabling this will prevent lateral control engagement."
+            "no_car": "启动车辆以检查车辆兼容性。\n\n注意：对于没有LFA/LKAS按钮的车辆，禁用此选项将阻止横向控制接合。",
+            "limited_brand": "此功能默认为关闭，由于车辆限制不允许选择。\n\n注意：对于没有LFA/LKAS按钮的车辆，禁用此选项将阻止横向控制接合。",
+            "default": "注意：对于没有LFA/LKAS按钮的车辆，禁用此选项将阻止横向控制接合。"
           },
           "description_conditions": {
             "no_car": {
@@ -80,14 +80,14 @@
         {
           "type": "toggle",
           "param": "MadsUnifiedEngagementMode",
-          "title": "Unified Engagement Mode (UEM)",
-          "desc": "Engage lateral and longitudinal control with cruise control engagement.\n\nNote: Once lateral control is engaged via UEM, it will remain engaged until it is manually disabled via the MADS button or car shut off.",
+          "title": "统一接合模式 (UEM)",
+          "desc": "通过巡航控制接合来同时接合横向和纵向控制。\n\n注意：一旦通过UEM接合横向控制，它将保持接合状态，直到通过MADS按钮手动禁用或车辆关闭。",
           "icon": "../assets/offroad/icon_blank.png",
           "dynamic_desc": true,
           "descriptions": {
-            "no_car": "Start the vehicle to check vehicle compatibility.\n\nEngage lateral and longitudinal control with cruise control engagement.\n\nNote: Once lateral control is engaged via UEM, it will remain engaged until it is manually disabled via the MADS button or car shut off.",
-            "limited_brand": "This feature defaults to ON, and does not allow selection due to vehicle limitations.\n\nEngage lateral and longitudinal control with cruise control engagement.\n\nNote: Once lateral control is engaged via UEM, it will remain engaged until it is manually disabled via the MADS button or car shut off.",
-            "default": "Engage lateral and longitudinal control with cruise control engagement.\n\nNote: Once lateral control is engaged via UEM, it will remain engaged until it is manually disabled via the MADS button or car shut off."
+            "no_car": "启动车辆以检查车辆兼容性。\n\n通过巡航控制接合来同时接合横向和纵向控制。\n\n注意：一旦通过UEM接合横向控制，它将保持接合状态，直到通过MADS按钮手动禁用或车辆关闭。",
+            "limited_brand": "此功能默认为开启，由于车辆限制不允许选择。\n\n通过巡航控制接合来同时接合横向和纵向控制。\n\n注意：一旦通过UEM接合横向控制，它将保持接合状态，直到通过MADS按钮手动禁用或车辆关闭。",
+            "default": "通过巡航控制接合来同时接合横向和纵向控制。\n\n注意：一旦通过UEM接合横向控制，它将保持接合状态，直到通过MADS按钮手动禁用或车辆关闭。"
           },
           "description_conditions": {
             "no_car": {
@@ -112,32 +112,32 @@
         {
           "type": "segmented_control",
           "param": "MadsSteeringMode",
-          "title": "Steering Mode on Brake Pedal",
-          "desc": "Choose how Automatic Lane Centering (ALC) behaves after the brake pedal is manually pressed in sunnypilot.",
+          "title": "制动踏板上的转向模式",
+          "desc": "选择在sunnypilot中手动按下制动踏板后自动车道居中（ALC）的行为。",
           "icon": "../assets/offroad/icon_blank.png",
           "showDescBottom": true,
           "options": [
             {
-              "name": "Remain Active",
+              "name": "保持激活",
               "value": "0",
-              "desc": "Remain Active: ALC will remain active when the brake pedal is pressed."
+              "desc": "保持激活：按下制动踏板时，ALC将保持激活状态。"
             },
             {
-              "name": "Pause",
+              "name": "暂停",
               "value": "1",
-              "desc": "Pause: ALC will pause when the brake pedal is pressed."
+              "desc": "暂停：按下制动踏板时，ALC将暂停。"
             },
             {
-              "name": "Disengage",
+              "name": "解除",
               "value": "2",
-              "desc": "Disengage: ALC will disengage when the brake pedal is pressed."
+              "desc": "解除：按下制动踏板时，ALC将解除。"
             }
           ],
           "dynamic_desc": true,
           "descriptions": {
-            "no_car": "Start the vehicle to check vehicle compatibility.\n\nChoose how Automatic Lane Centering (ALC) behaves after the brake pedal is manually pressed in sunnypilot.",
-            "limited_brand": "This platform only supports Disengage mode due to vehicle limitations.\n\nChoose how Automatic Lane Centering (ALC) behaves after the brake pedal is manually pressed in sunnypilot.",
-            "default": "Choose how Automatic Lane Centering (ALC) behaves after the brake pedal is manually pressed in sunnypilot."
+            "no_car": "启动车辆以检查车辆兼容性。\n\n选择在sunnypilot中手动按下制动踏板后自动车道居中（ALC）的行为。",
+            "limited_brand": "由于车辆限制，此平台仅支持解除模式。\n\n选择在sunnypilot中手动按下制动踏板后自动车道居中（ALC）的行为。",
+            "default": "选择在sunnypilot中手动按下制动踏板后自动车道居中（ALC）的行为。"
           },
           "description_conditions": {
             "no_car": {
@@ -151,16 +151,16 @@
             "allConditionsTrue": [
               {
                 "paramIsTrue": "Mads",
-                "reason": "Requires MADS to be enabled"
+                "reason": "需要启用MADS"
               },
-              { "isOffroad": true, "reason": "Requires offroad" },
+              { "isOffroad": true, "reason": "需要离线状态" },
               {
                 "hasCarParams": true,
-                "reason": "Start the vehicle to enable this setting"
+                "reason": "启动车辆以启用此设置"
               },
               {
                 "isMadsLimitedBrand": false,
-                "reason": "Mads limited brand is not allowed"
+                "reason": "不允许Mads受限品牌"
               }
             ]
           }
@@ -169,18 +169,18 @@
     },
     {
       "groupName": "laneChangeGroup",
-      "title": "Lane Change",
+      "title": "变道",
       "controls": [
         {
           "type": "selection",
           "param": "AutoLaneChangeTimer",
-          "title": "Auto Lane Change by Blinker",
-          "desc": "Set a timer to delay the auto lane change operation when the blinker is used. No nudge on the steering wheel is required to auto lane change if a timer is set. Default is Nudge.\n\nPlease use caution when using this feature. Only use the blinker when traffic and road conditions permit.",
+          "title": "通过转向灯自动变道",
+          "desc": "设置一个计时器，在使用转向灯时延迟自动变道操作。如果设置了计时器，则不需要在方向盘上轻推即可自动变道。默认为轻推。\n\n使用此功能时请谨慎。仅在交通和道路条件允许时使用转向灯。",
           "icon": "../assets/offroad/icon_blank.png",
           "options": [
-            { "name": "Off", "value": "-1" },
-            { "name": "Nudge", "value": "0", "default": true },
-            { "name": "Nudgeless", "value": "1" },
+            { "name": "关闭", "value": "-1" },
+            { "name": "轻推", "value": "0", "default": true },
+            { "name": "无需轻推", "value": "1" },
             { "name": "0.5 s", "value": "2" },
             { "name": "1 s", "value": "3" },
             { "name": "2 s", "value": "4" },
@@ -190,20 +190,20 @@
         {
           "type": "toggle",
           "param": "AutoLaneChangeBsmDelay",
-          "title": "Auto Lane Change: Delay with Blind Spot",
-          "desc": "Toggle to enable a delay timer for seamless lane changes when blind spot monitoring (BSM) detects a obstructing vehicle, ensuring safe maneuvering.",
+          "title": "自动变道：盲点延迟",
+          "desc": "切换以启用延迟计时器，当盲点监控（BSM）检测到阻碍车辆时，实现无缝变道，确保安全操作。",
           "icon": "../assets/offroad/icon_blank.png",
           "enableConditions": {
             "allConditionsTrue": [
               {
                 "hasBlindSpotMonitoring": true,
-                "reason": "Requires blind spot monitoring"
+                "reason": "需要盲点监控"
               },
               {
                 "paramValueGreaterThan": {
                   "AutoLaneChangeTimer": 0
                 },
-                "reason": "Auto lane change timer must be nudgeless or greater than 0s"
+                "reason": "自动变道计时器必须为无需轻推或大于0秒"
               }
             ]
           }
@@ -212,20 +212,20 @@
     },
     {
       "groupName": "blinkerPauseGroup",
-      "title": "Blinker Pause Lateral",
+      "title": "转向灯暂停横向控制",
       "controls": [
         {
           "type": "toggle",
           "param": "BlinkerPauseLateralControl",
-          "title": "Pause Lateral Control with Blinker",
-          "desc": "Pause lateral control with blinker when traveling below the desired speed selected.",
+          "title": "使用转向灯暂停横向控制",
+          "desc": "在低于所选期望速度行驶时，使用转向灯暂停横向控制。",
           "icon": "../assets/offroad/icon_blank.png"
         },
         {
           "type": "selection",
           "param": "BlinkerMinLateralControlSpeed",
-          "title": "Minimum Speed for Blinker Pause",
-          "desc": "Speed below which lateral control will pause when blinker is active",
+          "title": "转向灯暂停的最小速度",
+          "desc": "当转向灯激活时，低于此速度横向控制将暂停",
           "unit": "mph",
           "unitMetric": "km/h",
           "options": [
@@ -257,19 +257,19 @@
     },
     {
       "groupName": "torqueControlGroup",
-      "title": "Torque Lateral Control",
+      "title": "扭矩横向控制",
       "controls": [
         {
           "type": "toggle",
           "param": "EnforceTorqueControl",
-          "title": "Enforce Torque Lateral Control",
-          "desc": "Enable this to enforce sunnypilot to steer with Torque lateral control.",
+          "title": "强制扭矩横向控制",
+          "desc": "启用此选项以强制sunnypilot使用扭矩横向控制进行转向。",
           "icon": "../assets/offroad/icon_blank.png",
           "dynamic_desc": true,
           "descriptions": {
-            "angle_steering": "This vehicle uses angle-based steering and cannot use torque control.",
-            "nnlc_active": "Neural Network Lateral Control is enabled. Disable NNLC to use torque control.",
-            "default": "Enable this to enforce sunnypilot to steer with Torque lateral control."
+            "angle_steering": "此车辆使用基于角度的转向，无法使用扭矩控制。",
+            "nnlc_active": "已启用神经网络横向控制。禁用NNLC以使用扭矩控制。",
+            "default": "启用此选项以强制sunnypilot使用扭矩横向控制进行转向。"
           },
           "description_conditions": {
             "angle_steering": {
@@ -281,14 +281,14 @@
           },
           "enableConditions": {
             "allConditionsTrue": [
-              { "isOffroad": true, "reason": "Requires offroad" },
+              { "isOffroad": true, "reason": "需要离线状态" },
               {
                 "isAngleSteering": false,
-                "reason": "Requires angle-based steering"
+                "reason": "需要基于角度的转向"
               },
               {
                 "paramIsFalse": "NeuralNetworkLateralControl",
-                "reason": "Requires Neural Network Lateral Control to be disabled"
+                "reason": "需要禁用神经网络横向控制"
               }
             ]
           }
@@ -296,8 +296,8 @@
         {
           "type": "toggle",
           "param": "LiveTorqueParamsToggle",
-          "title": "Self-Tune",
-          "desc": "Enables self-tune for Torque lateral control for platforms that do not use Torque lateral control by default.",
+          "title": "自调谐",
+          "desc": "为默认不使用扭矩横向控制的平台启用扭矩横向控制的自调谐。",
           "icon": "../assets/offroad/icon_blank.png",
           "enableConditions": {
             "allConditionsTrue": [
@@ -311,8 +311,8 @@
         {
           "type": "toggle",
           "param": "LiveTorqueParamsRelaxedToggle",
-          "title": "Less Restrict Settings for Self-Tune (Beta)",
-          "desc": "Less strict settings when using Self-Tune. This allows torqued to be more forgiving when learning values.",
+          "title": "自调谐的宽松设置（Beta）",
+          "desc": "使用自调谐时的宽松设置。这允许torqued在学习值时更加宽容。",
           "icon": "../assets/offroad/icon_blank.png",
           "enableConditions": {
             "allConditionsTrue": [
@@ -330,21 +330,21 @@
     },
     {
       "groupName": "nnlcGroup",
-      "title": "Neural Network Lateral Control",
+      "title": "神经网络横向控制",
       "controls": [
         {
           "type": "toggle",
           "param": "NeuralNetworkLateralControl",
-          "title": "Neural Network Lateral Control (NNLC)",
-          "desc": "Formerly known as \"NNFF\", this replaces the lateral \"torque\" controller with one using a neural network trained on each car's (actually, each separate EPS firmware) driving data for increased controls accuracy.\n\nReach out to the sunnypilot team in the following channel at the sunnypilot Discord server with feedback, or to provide log data for your car if your car is currently unsupported: #tuning-nnlc",
+          "title": "神经网络横向控制 (NNLC)",
+          "desc": "以前称为\"NNFF\"，这用基于神经网络训练的控制器替换了横向\"扭矩\"控制器，该神经网络基于每辆车（实际上是每个单独的EPS固件）的驾驶数据进行训练，以提高控制精度。\n\n如果您的车辆目前不受支持，请在sunnypilot Discord服务器的以下频道联系sunnypilot团队提供反馈，或提供您车辆的日志数据：#tuning-nnlc",
           "icon": "../assets/offroad/icon_blank.png",
           "confirm": true,
           "dynamic_desc": true,
           "descriptions": {
-            "check_compatibility": "Start the car to check car compatibility.\n\nFormerly known as \"NNFF\", this replaces the lateral \"torque\" controller with one using a neural network trained on each car's (actually, each separate EPS firmware) driving data for increased controls accuracy.\n\nReach out to the sunnypilot team in the following channel at the sunnypilot Discord server with feedback, or to provide log data for your car if your car is currently unsupported: #tuning-nnlc",
-            "not_available": "NNLC is currently not available on this platform.\n\nThis platform uses angle-based steering and is not compatible with NNLC.",
-            "torque_enforced": "Enforce Torque Lateral Control is enabled. Disable it to use NNLC.\n\nFormerly known as \"NNFF\", this replaces the lateral \"torque\" controller with one using a neural network trained on each car's (actually, each separate EPS firmware) driving data for increased controls accuracy.",
-            "default": "Formerly known as \"NNFF\", this replaces the lateral \"torque\" controller with one using a neural network trained on each car's (actually, each separate EPS firmware) driving data for increased controls accuracy.\n\nReach out to the sunnypilot team in the following channel at the sunnypilot Discord server with feedback, or to provide log data for your car if your car is currently unsupported: #tuning-nnlc"
+            "check_compatibility": "启动车辆以检查车辆兼容性。\n\n以前称为\"NNFF\"，这用基于神经网络训练的控制器替换了横向\"扭矩\"控制器，该神经网络基于每辆车（实际上是每个单独的EPS固件）的驾驶数据进行训练，以提高控制精度。\n\n如果您的车辆目前不受支持，请在sunnypilot Discord服务器的以下频道联系sunnypilot团队提供反馈，或提供您车辆的日志数据：#tuning-nnlc",
+            "not_available": "NNLC在此平台上当前不可用。\n\n此平台使用基于角度的转向，与NNLC不兼容。",
+            "torque_enforced": "已启用强制扭矩横向控制。禁用它以使用NNLC。\n\n以前称为\"NNFF\"，这用基于神经网络训练的控制器替换了横向\"扭矩\"控制器，该神经网络基于每辆车（实际上是每个单独的EPS固件）的驾驶数据进行训练，以提高控制精度。",
+            "default": "以前称为\"NNFF\"，这用基于神经网络训练的控制器替换了横向\"扭矩\"控制器，该神经网络基于每辆车（实际上是每个单独的EPS固件）的驾驶数据进行训练，以提高控制精度。\n\n如果您的车辆目前不受支持，请在sunnypilot Discord服务器的以下频道联系sunnypilot团队提供反馈，或提供您车辆的日志数据：#tuning-nnlc"
           },
           "description_conditions": {
             "check_compatibility": {
@@ -362,14 +362,14 @@
           },
           "enableConditions": {
             "allConditionsTrue": [
-              { "isOffroad": true, "reason": "Requires offroad" },
+              { "isOffroad": true, "reason": "需要离线状态" },
               {
                 "isAngleSteering": false,
-                "reason": "Requires angle-based steering"
+                "reason": "需要基于角度的转向"
               },
               {
                 "paramIsFalse": "EnforceTorqueControl",
-                "reason": "Requires enforce torque control to be disabled"
+                "reason": "需要禁用强制扭矩控制"
               }
             ]
           }
@@ -378,27 +378,27 @@
     },
     {
       "groupName": "bluepilotLateralGroup",
-      "title": "BluePilot Lateral Controls",
+      "title": "BluePilot横向控制",
       "enableResetButton": true,
       "controls": [
         {
           "type": "toggle",
           "param": "FordPrefDisableBP_lat_UI",
-          "title": "Disable BluePilot Lateral Controls",
-          "desc": "[BluePilot] Use stock openpilot lateral controls",
+          "title": "禁用BluePilot横向控制",
+          "desc": "[BluePilot] 使用原始openpilot横向控制",
           "hidden": false
         },
         {
           "type": "toggle",
           "param": "FordPrefHumanTurnDetectionEnable",
-          "title": "Enable Human Turn Detection",
-          "desc": "[BluePilot] Reset steering so you don't fight the wheel making manual turns.",
+          "title": "启用手动转向检测",
+          "desc": "[BluePilot] 重置转向，这样您在手动转向时不会与方向盘对抗。",
           "hidden": false,
           "enableConditions": {
             "allConditionsTrue": [
               {
                 "paramIsFalse": "FordPrefDisableBP_lat_UI",
-                "reason": "Requires BluePilot Lateral Controls to be enabled"
+                "reason": "需要启用BluePilot横向控制"
               }
             ]
           }
@@ -406,8 +406,8 @@
         {
           "type": "float",
           "param": "FordLatTuningLaneChgFactorHigh",
-          "title": "Lane Change Factor High",
-          "desc": "[BluePilot] Adjust lane change curvature aggressiveness (lower = slower).",
+          "title": "变道因子高",
+          "desc": "[BluePilot] 调整变道曲率激进程度（值越低 = 越慢）。",
           "hidden": false,
           "min": 0.0,
           "max": 1.0,
@@ -422,8 +422,8 @@
         {
           "type": "toggle",
           "param": "FordLatTuningTuningCustomProfile",
-          "title": "Use Custom Tuning Profile",
-          "desc": "[BluePilot] Use custom tuning profile for advanced lateral control",
+          "title": "使用自定义调谐配置文件",
+          "desc": "[BluePilot] 使用自定义调谐配置文件进行高级横向控制",
           "hidden": false,
           "visibleConditions": {
             "allConditionsTrue": [
@@ -435,14 +435,14 @@
     },
     {
       "groupName": "curvatureBlendGroup",
-      "title": "Curvature Blend Settings",
+      "title": "曲率混合设置",
       "enableResetButton": false,
       "controls": [
         {
           "type": "float",
           "param": "FordLatTuningPCBlendRatio_low_C",
-          "title": "Predicted Curvature Blend Ratio Low",
-          "desc": "[BluePilot] Adjust the blend ratio of predicted curvature in straightaways.",
+          "title": "预测曲率混合比低",
+          "desc": "[BluePilot] 调整直道上预测曲率的混合比。",
           "hidden": false,
           "min": 0.0,
           "max": 1.0,
@@ -462,8 +462,8 @@
         {
           "type": "float",
           "param": "FordLatTuningPCBlendRatio_high_C",
-          "title": "Predicted Curvature Blend Ratio High",
-          "desc": "[BluePilot] Adjust the blend ratio of predicted curvature in curves.",
+          "title": "预测曲率混合比高",
+          "desc": "[BluePilot] 调整弯道中预测曲率的混合比。",
           "hidden": false,
           "min": 0.0,
           "max": 1.0,
@@ -484,14 +484,14 @@
     },
     {
       "groupName": "lanePositioningGroup",
-      "title": "Lane Positioning",
+      "title": "车道定位",
       "enableResetButton": false,
       "controls": [
         {
           "type": "toggle",
           "param": "FordLatTuningEnableLanePositioning",
-          "title": "Enable Advanced Lane Positioning",
-          "desc": "[BluePilot] Allows custom lane positioning and lanefull.",
+          "title": "启用高级车道定位",
+          "desc": "[BluePilot] 允许自定义车道定位和lanefull。",
           "hidden": false,
           "visibleConditions": {
             "allConditionsTrue": [
@@ -504,8 +504,8 @@
         {
           "type": "float",
           "param": "FordLatTuningCustomPathOffset",
-          "title": "In Lane Offset",
-          "desc": "[BluePilot] Adjusts lane position - left (-) / right (+)",
+          "title": "车道内偏移",
+          "desc": "[BluePilot] 调整车道位置 - 左（-）/ 右（+）",
           "hidden": false,
           "min": -0.5,
           "max": 0.5,
@@ -525,8 +525,8 @@
         {
           "type": "toggle",
           "param": "FordLatTuningEnableLanefullMode",
-          "title": "Enable Lane Full Mode",
-          "desc": "[BluePilot] Enable Auto Lanefull Mode similar to legacy SunnyPilot",
+          "title": "启用车道全宽模式",
+          "desc": "[BluePilot] 启用类似于旧版SunnyPilot的自动Lanefull模式",
           "hidden": false,
           "visibleConditions": {
             "allConditionsTrue": [
@@ -542,8 +542,8 @@
         {
           "type": "float",
           "param": "FordLatTuningLCPIDGainUI",
-          "title": "Low Curvature PID Gain",
-          "desc": "[BluePilot] Adjust the gain of the PID controller for low curvature",
+          "title": "低曲率PID增益",
+          "desc": "[BluePilot] 调整低曲率的PID控制器增益",
           "hidden": false,
           "min": 0.0,
           "max": 10.0,
