@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import math
+import sys
 import capnp
 import calendar
 import numpy as np
@@ -8,9 +9,50 @@ from dataclasses import dataclass
 
 from cereal import log
 from cereal import messaging
-from openpilot.system.ubloxd.generated.ubx import Ubx
-from openpilot.system.ubloxd.generated.gps import Gps
-from openpilot.system.ubloxd.generated.glonass import Glonass
+
+# 尝试导入 kaitaistruct 生成的模块，如果失败则优雅处理
+try:
+  from openpilot.system.ubloxd.generated.ubx import Ubx
+  from openpilot.system.ubloxd.generated.gps import Gps
+  from openpilot.system.ubloxd.generated.glonass import Glonass
+  KAITAI_AVAILABLE = True
+except ImportError as e:
+  print(f"ERROR: Failed to import kaitaistruct modules: {e}")
+  print("=" * 60)
+  print("kaitaistruct is required for ubloxd to function.")
+  print("Please install it by running:")
+  print("  pip3 install kaitaistruct")
+  print("=" * 60)
+  print("ubloxd will exit gracefully. Other services should continue to work.")
+  KAITAI_AVAILABLE = False
+  # 创建占位符类以避免后续导入错误
+  class Ubx:
+    class NavPvt:
+      @staticmethod
+      def from_bytes(data): pass
+    class RxmRawx:
+      @staticmethod
+      def from_bytes(data): pass
+    class MonHw:
+      @staticmethod
+      def from_bytes(data): pass
+    class MonHw2:
+      @staticmethod
+      def from_bytes(data): pass
+    class NavSat:
+      @staticmethod
+      def from_bytes(data): pass
+    class GnssType:
+      gps = 0
+      glonass = 6
+    class RxmSfrbx:
+      pass
+  class Gps:
+    @staticmethod
+    def from_bytes(data): pass
+  class Glonass:
+    @staticmethod
+    def from_bytes(data): pass
 
 
 SECS_IN_MIN = 60
@@ -493,6 +535,11 @@ class UbloxMsgParser:
 
 
 def main():
+  if not KAITAI_AVAILABLE:
+    print("ubloxd cannot start without kaitaistruct. Exiting gracefully.")
+    print("Other services should continue to work.")
+    sys.exit(0)  # 优雅退出，返回0表示正常退出（虽然功能不可用）
+  
   parser = UbloxMsgParser()
   pm = messaging.PubMaster(['ubloxGnss', 'gpsLocationExternal'])
   sock = messaging.sub_sock('ubloxRaw', timeout=100, conflate=False)
