@@ -1,27 +1,27 @@
 {
   "type": "base",
-  "menuName": "Cruise",
+  "menuName": "巡航",
   "menuIcon": "../assets/icons/speed_limit.png",
-  "menuDescription": "Longitudinal Control and Cruise Settings",
+  "menuDescription": "纵向控制和巡航设置",
   "groups": [
     {
       "groupName": "cruiseControlGroup",
-      "title": "Cruise Control",
+      "title": "巡航控制",
       "controls": [
         {
           "type": "toggle",
           "param": "IntelligentCruiseButtonManagement",
-          "title": "Intelligent Cruise Button Management (ICBM) (Alpha)",
-          "desc": "When enabled, sunnypilot will attempt to manage the built-in cruise control buttons by emulating button presses for limited longitudinal control.",
+          "title": "智能巡航按钮管理 (ICBM) (Alpha)",
+          "desc": "启用后，sunnypilot将尝试通过模拟按钮按压来管理内置巡航控制按钮，以实现有限的纵向控制。",
           "icon": "",
           "confirmation": true,
           "dynamic_desc": true,
           "descriptions": {
-            "default": "When enabled, sunnypilot will attempt to manage the built-in cruise control buttons by emulating button presses for limited longitudinal control.",
-            "unavailable_has_long": "Intelligent Cruise Button Management is currently unavailable on this platform. Disable the openpilot Longitudinal Control (alpha) toggle to allow Intelligent Cruise Button Management.",
-            "unavailable_default_long": "Intelligent Cruise Button Management is currently unavailable on this platform. openpilot Longitudinal Control is the default longitudinal control for this platform.",
-            "unavailable_generic": "Intelligent Cruise Button Management is currently unavailable on this platform.",
-            "offroad": "Start the vehicle to check vehicle compatibility."
+            "default": "启用后，sunnypilot将尝试通过模拟按钮按压来管理内置巡航控制按钮，以实现有限的纵向控制。",
+            "unavailable_has_long": "智能巡航按钮管理在此平台上当前不可用。请禁用openpilot纵向控制（alpha）开关以允许智能巡航按钮管理。",
+            "unavailable_default_long": "智能巡航按钮管理在此平台上当前不可用。openpilot纵向控制是此平台的默认纵向控制。",
+            "unavailable_generic": "智能巡航按钮管理在此平台上当前不可用。",
+            "offroad": "启动车辆以检查车辆兼容性。"
           },
           "description_conditions": {
             "offroad": {
@@ -74,15 +74,15 @@
             "allConditionsTrue": [
               {
                 "isOffroad": true,
-                "reason": "Requires offroad"
+                "reason": "需要离线状态"
               },
               {
                 "hasIntelligentCruiseButtonManagement": true,
-                "reason": "Requires ICBM"
+                "reason": "需要ICBM"
               },
               {
                 "hasLongitudinalControl": false,
-                "reason": "Requires no openpilot longitudinal control"
+                "reason": "需要禁用openpilot纵向控制"
               }
             ]
           }
@@ -90,14 +90,14 @@
         {
           "type": "toggle",
           "param": "DynamicExperimentalControl",
-          "title": "Dynamic Experimental Control (DEC)",
-          "desc": "Enable toggle to allow the model to determine when to use sunnypilot ACC or sunnypilot End to End Longitudinal.",
+          "title": "动态实验控制 (DEC)",
+          "desc": "启用此开关以允许模型决定何时使用sunnypilot ACC或sunnypilot端到端纵向控制。",
           "icon": "",
           "enableConditions": {
             "allConditionsTrue": [
               {
                 "hasLongitudinalControl": true,
-                "reason": "Requires openpilot longitudinal control"
+                "reason": "需要openpilot纵向控制"
               }
             ]
           }
@@ -105,19 +105,19 @@
         {
           "type": "toggle",
           "param": "SmartCruiseControlVision",
-          "title": "Smart Cruise Control - Vision",
-          "desc": "Use vision path predictions to estimate the appropriate speed to drive through turns ahead.",
+          "title": "智能巡航控制 - 视觉",
+          "desc": "使用视觉路径预测来估算通过前方弯道的适当速度。",
           "icon": "",
           "dynamic_desc": false,
           "enableConditions": {
             "anyConditionsTrue": [
               {
                 "hasLongitudinalControl": true,
-                "reason": "Requires openpilot longitudinal control"
+                "reason": "需要openpilot纵向控制"
               },
               {
                 "hasIntelligentCruiseButtonManagement": true,
-                "reason": "Requires ICBM"
+                "reason": "需要ICBM"
               }
             ]
           }
@@ -125,8 +125,8 @@
         {
           "type": "toggle",
           "param": "SmartCruiseControlMap",
-          "title": "Smart Cruise Control - Map",
-          "desc": "Use map data to estimate the appropriate speed to drive through turns ahead.",
+          "title": "智能巡航控制 - 地图",
+          "desc": "使用地图数据来估算通过前方弯道的适当速度。",
           "icon": "",
           "dynamic_desc": false,
           "enableConditions": {
@@ -145,15 +145,15 @@
         {
           "type": "toggle",
           "param": "CustomAccIncrementsEnabled",
-          "title": "Custom ACC Speed Increments",
-          "desc": "Enable custom Short & Long press increments for cruise speed increase/decrease.",
+          "title": "自定义ACC速度增量",
+          "desc": "启用自定义短按和长按增量以增加/减少巡航速度。",
           "icon": "",
           "dynamic_desc": true,
           "descriptions": {
-            "offroad": "Start the vehicle to check vehicle compatibility.",
-            "no_longitudinal": "This feature can only be used with openpilot longitudinal control enabled.",
-            "pcm_cruise_disabled": "This feature is not supported on this platform due to vehicle limitations.",
-            "default": "Enable custom Short & Long press increments for cruise speed increase/decrease."
+            "offroad": "启动车辆以检查车辆兼容性。",
+            "no_longitudinal": "此功能只能在启用openpilot纵向控制时使用。",
+            "pcm_cruise_disabled": "由于车辆限制，此功能在此平台上不受支持。",
+            "default": "启用自定义短按和长按增量以增加/减少巡航速度。"
           },
           "description_conditions": {
             "offroad": {
@@ -197,7 +197,7 @@
             "allConditionsTrue": [
               {
                 "isOnroad": true,
-                "reason": "Requires onroad"
+                "reason": "需要行驶中"
               },
               {
                 "anyConditionsTrue": [
@@ -205,17 +205,17 @@
                     "allConditionsTrue": [
                       {
                         "hasLongitudinalControl": true,
-                        "reason": "Requires openpilot longitudinal control"
+                        "reason": "需要openpilot纵向控制"
                       },
                       {
                         "isPcmCruise": false,
-                        "reason": "Requires PCM cruise disabled"
+                        "reason": "需要禁用PCM巡航"
                       }
                     ]
                   },
                   {
                     "hasIntelligentCruiseButtonManagement": true,
-                    "reason": "Requires ICBM"
+                    "reason": "需要ICBM"
                   }
                 ]
               }
@@ -226,45 +226,45 @@
     },
     {
       "groupName": "speedLimitGroup",
-      "title": "Speed Limit",
+      "title": "速度限制",
       "controls": [
         {
           "type": "segmented_control",
           "param": "SpeedLimitMode",
-          "title": "Speed Limit",
+          "title": "速度限制",
           "desc": "",
           "icon": "",
           "showDescBottom": true,
           "options": [
             {
-              "name": "Off",
+              "name": "关闭",
               "value": "0",
-              "desc": "Disables the Speed Limit functions.",
+              "desc": "禁用速度限制功能。",
               "default": true
             },
             {
-              "name": "Information",
+              "name": "信息",
               "value": "1",
-              "desc": "Displays the current road's speed limit."
+              "desc": "显示当前道路的速度限制。"
             },
             {
-              "name": "Warning",
+              "name": "警告",
               "value": "2",
-              "desc": "Provides a warning when exceeding the current road's speed limit."
+              "desc": "当超过当前道路速度限制时提供警告。"
             },
             {
-              "name": "Assist",
+              "name": "辅助",
               "value": "3",
-              "desc": "Adjusts the vehicle's cruise speed based on the current road's speed limit when operating the +/- buttons.",
+              "desc": "操作+/-按钮时，根据当前道路速度限制调整车辆的巡航速度。",
               "enableConditions": {
                 "anyConditionsTrue": [
                   {
                     "hasLongitudinalControl": true,
-                    "reason": "Requires openpilot longitudinal control"
+                    "reason": "需要openpilot纵向控制"
                   },
                   {
                     "hasIntelligentCruiseButtonManagement": true,
-                    "reason": "Requires ICBM"
+                    "reason": "需要ICBM"
                   }
                 ]
               }
@@ -274,70 +274,70 @@
         {
           "type": "segmented_control",
           "param": "SpeedLimitPolicy",
-          "title": "Speed Limit Source",
+          "title": "速度限制来源",
           "desc": "",
           "icon": "",
           "showDescBottom": true,
           "options": [
             {
-              "name": "Car\nOnly",
+              "name": "仅车辆",
               "value": "0",
-              "desc": "Use only the car's built-in speed limit data."
+              "desc": "仅使用车辆内置的速度限制数据。"
             },
             {
-              "name": "Map\nOnly",
+              "name": "仅地图",
               "value": "1",
-              "desc": "Use only map data for speed limit information.",
+              "desc": "仅使用地图数据获取速度限制信息。",
               "default": true
             },
             {
-              "name": "Car\nFirst",
+              "name": "车辆优先",
               "value": "2",
-              "desc": "Prefer car data, fall back to map if unavailable."
+              "desc": "优先使用车辆数据，如果不可用则回退到地图。"
             },
             {
-              "name": "Map\nFirst",
+              "name": "地图优先",
               "value": "3",
-              "desc": "Prefer map data, fall back to car if unavailable."
+              "desc": "优先使用地图数据，如果不可用则回退到车辆。"
             },
             {
-              "name": "Combined\nData",
+              "name": "组合数据",
               "value": "4",
-              "desc": "Use both car and map data together."
+              "desc": "同时使用车辆和地图数据。"
             }
           ]
         },
         {
           "type": "segmented_control",
           "param": "SpeedLimitOffsetType",
-          "title": "Speed Limit Offset",
+          "title": "速度限制偏移",
           "desc": "",
           "icon": "",
           "showDescBottom": true,
           "options": [
             {
-              "name": "None",
+              "name": "无",
               "value": "0",
-              "desc": "No Offset",
+              "desc": "无偏移",
               "default": true
             },
             {
-              "name": "Fixed",
+              "name": "固定",
               "value": "1",
-              "desc": "Adds a fixed offset [Speed Limit + Offset]"
+              "desc": "添加固定偏移 [速度限制 + 偏移]"
             },
             {
-              "name": "Percent",
+              "name": "百分比",
               "value": "2",
-              "desc": "Adds a percent offset [Speed Limit + (Offset % Speed Limit)]"
+              "desc": "添加百分比偏移 [速度限制 + (偏移 % 速度限制)]"
             }
           ]
         },
         {
           "type": "integer",
           "param": "SpeedLimitValueOffset",
-          "title": "Fixed Offset Value",
-          "desc": "Fixed speed offset value in mph/km/h",
+          "title": "固定偏移值",
+          "desc": "固定速度偏移值（单位：mph/km/h）",
           "min": -30,
           "max": 30,
           "increment": 1,
@@ -355,8 +355,8 @@
         {
           "type": "integer",
           "param": "SpeedLimitValueOffset",
-          "title": "Percent Offset Value",
-          "desc": "Percent offset value (e.g., 10 = +10%)",
+          "title": "百分比偏移值",
+          "desc": "百分比偏移值（例如：10 = +10%）",
           "min": -50,
           "max": 50,
           "increment": 5,
