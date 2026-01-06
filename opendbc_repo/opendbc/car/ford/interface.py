@@ -62,7 +62,7 @@ class CarInterface(CarInterfaceBase):
       cfgs.insert(0, get_safety_config(structs.CarParams.SafetyModel.noOutput))
     ret.safetyConfigs = cfgs
 
-	# For now continue to allow the user to still fall back to Ford Long
+    # For now continue to allow the user to still fall back to Ford Long
     # for  CANFD platforms - in case radar is not fully reliable
     ret.alphaLongitudinalAvailable = True # bool(ret.flags & FordFlags.CANFD)
     info(f"| alphaLongAvailable: {ret.alphaLongitudinalAvailable}", True)
@@ -75,9 +75,6 @@ class CarInterface(CarInterfaceBase):
 
     if ret.flags & FordFlags.CANFD:
       ret.safetyConfigs[-1].safetyParam |= FordSafetyFlags.CANFD.value
-
-    # for fw in car_fw:
-    #  debug(f'ECU: {fw.ecu}, FW Version: {fw.fwVersion}', True)
 
       # TRON (SecOC) platforms are not supported
       # LateralMotionControl2, ACCDATA are 16 bytes on these platforms
