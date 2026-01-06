@@ -141,30 +141,45 @@ def main() -> None:
                 dfu.reset()
                 cloudlog.info(f"Successfully recovered DFU Panda {serial} with H7 bootstub, waiting for Panda to reconnect...")
                 dfu.close()
-                time.sleep(3)  # Wait for Panda to exit DFU mode and reconnect
                 
-                # Try to connect to Panda and flash main firmware
-                try:
-                  panda_serials_after_recovery = Panda.list()
-                  if serial in panda_serials_after_recovery or len(panda_serials_after_recovery) > 0:
-                    # Use the first available serial if exact match not found
-                    panda_serial_to_use = serial if serial in panda_serials_after_recovery else panda_serials_after_recovery[0]
-                    cloudlog.info(f"Panda reconnected after DFU recovery, connecting to {panda_serial_to_use} to flash main firmware")
-                    panda = Panda(panda_serial_to_use)
-                    # Flash main firmware
-                    h7_main_fn = os.path.join(FW_PATH, "panda_h7.bin.signed")
-                    if os.path.exists(h7_main_fn):
-                      cloudlog.info(f"Flashing main firmware: {h7_main_fn}")
-                      panda.flash(fn=h7_main_fn)
-                      cloudlog.info(f"Successfully flashed main firmware to Panda {panda_serial_to_use}")
+                # Wait for Panda to exit DFU mode and reconnect, with retries
+                panda_reconnected = False
+                for retry in range(5):  # Try up to 5 times
+                  time.sleep(2)  # Wait 2 seconds between retries
+                  try:
+                    panda_serials_after_recovery = Panda.list()
+                    if serial in panda_serials_after_recovery or len(panda_serials_after_recovery) > 0:
+                      # Use the first available serial if exact match not found
+                      panda_serial_to_use = serial if serial in panda_serials_after_recovery else panda_serials_after_recovery[0]
+                      cloudlog.info(f"Panda reconnected after DFU recovery (attempt {retry + 1}), connecting to {panda_serial_to_use} to flash main firmware")
+                      panda = Panda(panda_serial_to_use)
+                      # Flash main firmware
+                      h7_main_fn = os.path.join(FW_PATH, "panda_h7.bin.signed")
+                      if os.path.exists(h7_main_fn):
+                        cloudlog.info(f"Flashing main firmware: {h7_main_fn}")
+                        panda.flash(fn=h7_main_fn)
+                        cloudlog.info(f"Successfully flashed main firmware to Panda {panda_serial_to_use}")
+                        panda.close()
+                        recovery_successful = True
+                        panda_reconnected = True
+                        break
+                      else:
+                        cloudlog.warning(f"Main firmware file not found: {h7_main_fn}, Panda may remain in bootstub mode")
+                        panda.close()
+                        # Even without main firmware, bootstub is flashed, so consider it successful
+                        recovery_successful = True
+                        panda_reconnected = True
+                        break
+                  except Exception as e:
+                    if retry < 4:
+                      cloudlog.info(f"Panda not yet reconnected (attempt {retry + 1}/5): {e}, retrying...")
                     else:
-                      cloudlog.warning(f"Main firmware file not found: {h7_main_fn}, Panda may remain in bootstub mode")
-                    panda.close()
-                    recovery_successful = True
-                  else:
-                    cloudlog.warning(f"Panda {serial} not found after DFU recovery, may need more time to reconnect")
-                except Exception as e:
-                  cloudlog.warning(f"Failed to connect and flash main firmware after DFU recovery: {e}")
+                      cloudlog.warning(f"Failed to connect and flash main firmware after DFU recovery: {e}")
+                
+                if not panda_reconnected:
+                  cloudlog.warning(f"Panda {serial} not found after DFU recovery after 5 attempts, bootstub was flashed but main firmware may not be loaded")
+                  # Even if Panda didn't reconnect, bootstub was successfully flashed, so continue
+                  recovery_successful = True
                 
                 if recovery_successful:
                   continue
@@ -192,30 +207,45 @@ def main() -> None:
                 dfu.reset()
                 cloudlog.info(f"Successfully recovered DFU Panda {serial} with F4 bootstub, waiting for Panda to reconnect...")
                 dfu.close()
-                time.sleep(3)  # Wait for Panda to exit DFU mode and reconnect
                 
-                # Try to connect to Panda and flash main firmware
-                try:
-                  panda_serials_after_recovery = Panda.list()
-                  if serial in panda_serials_after_recovery or len(panda_serials_after_recovery) > 0:
-                    # Use the first available serial if exact match not found
-                    panda_serial_to_use = serial if serial in panda_serials_after_recovery else panda_serials_after_recovery[0]
-                    cloudlog.info(f"Panda reconnected after DFU recovery, connecting to {panda_serial_to_use} to flash main firmware")
-                    panda = Panda(panda_serial_to_use)
-                    # Flash main firmware
-                    f4_main_fn = os.path.join(FW_PATH, "panda.bin.signed")
-                    if os.path.exists(f4_main_fn):
-                      cloudlog.info(f"Flashing main firmware: {f4_main_fn}")
-                      panda.flash(fn=f4_main_fn)
-                      cloudlog.info(f"Successfully flashed main firmware to Panda {panda_serial_to_use}")
+                # Wait for Panda to exit DFU mode and reconnect, with retries
+                panda_reconnected = False
+                for retry in range(5):  # Try up to 5 times
+                  time.sleep(2)  # Wait 2 seconds between retries
+                  try:
+                    panda_serials_after_recovery = Panda.list()
+                    if serial in panda_serials_after_recovery or len(panda_serials_after_recovery) > 0:
+                      # Use the first available serial if exact match not found
+                      panda_serial_to_use = serial if serial in panda_serials_after_recovery else panda_serials_after_recovery[0]
+                      cloudlog.info(f"Panda reconnected after DFU recovery (attempt {retry + 1}), connecting to {panda_serial_to_use} to flash main firmware")
+                      panda = Panda(panda_serial_to_use)
+                      # Flash main firmware
+                      f4_main_fn = os.path.join(FW_PATH, "panda.bin.signed")
+                      if os.path.exists(f4_main_fn):
+                        cloudlog.info(f"Flashing main firmware: {f4_main_fn}")
+                        panda.flash(fn=f4_main_fn)
+                        cloudlog.info(f"Successfully flashed main firmware to Panda {panda_serial_to_use}")
+                        panda.close()
+                        recovery_successful = True
+                        panda_reconnected = True
+                        break
+                      else:
+                        cloudlog.warning(f"Main firmware file not found: {f4_main_fn}, Panda may remain in bootstub mode")
+                        panda.close()
+                        # Even without main firmware, bootstub is flashed, so consider it successful
+                        recovery_successful = True
+                        panda_reconnected = True
+                        break
+                  except Exception as e:
+                    if retry < 4:
+                      cloudlog.info(f"Panda not yet reconnected (attempt {retry + 1}/5): {e}, retrying...")
                     else:
-                      cloudlog.warning(f"Main firmware file not found: {f4_main_fn}, Panda may remain in bootstub mode")
-                    panda.close()
-                    recovery_successful = True
-                  else:
-                    cloudlog.warning(f"Panda {serial} not found after DFU recovery, may need more time to reconnect")
-                except Exception as e:
-                  cloudlog.warning(f"Failed to connect and flash main firmware after DFU recovery: {e}")
+                      cloudlog.warning(f"Failed to connect and flash main firmware after DFU recovery: {e}")
+                
+                if not panda_reconnected:
+                  cloudlog.warning(f"Panda {serial} not found after DFU recovery after 5 attempts, bootstub was flashed but main firmware may not be loaded")
+                  # Even if Panda didn't reconnect, bootstub was successfully flashed, so continue
+                  recovery_successful = True
                 
                 if recovery_successful:
                   continue
