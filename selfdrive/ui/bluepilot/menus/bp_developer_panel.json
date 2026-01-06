@@ -160,7 +160,7 @@
           "icon": "../assets/icons/shell.png",
           "dynamic_desc": true,
           "descriptions": {
-            "needs_disable_updates": "快速启动模式需要禁用更新。<br>请先在软件面板中启用"禁用更新"。",
+            "needs_disable_updates": "快速启动模式需要禁用更新。<br>请先在软件面板中启用\"禁用更新\"。",
             "enabled": "启用时，这将创建一个预构建文件以允许加速启动时间。禁用时，它会立即删除预构建文件，以便可以编译本地编辑的cpp文件。<br><br><b>要在设备上本地编辑C++文件，您必须先关闭此开关，以便可以重新编译更改。</b>"
           },
           "description_conditions": {
