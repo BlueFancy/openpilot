@@ -61,9 +61,10 @@ def flash_panda(panda_serial: str) -> Panda:
   # If still in bootstub after all attempts, log warning but continue
   # This allows the system to continue running even if Panda firmware is incompatible
   if panda.bootstub:
-    cloudlog.warning("Panda still in bootstub mode after flashing attempts, but continuing with existing firmware")
+    cloudlog.warning("Panda still in bootstub mode after flashing attempts, but continuing anyway")
+    cloudlog.warning("Panda in bootstub mode can still provide CAN messages, allowing system to continue")
     # Don't raise AssertionError - allow system to continue
-    # Note: CAN messages may not be available, so vehicle identification may fail
+    # Note: Even in bootstub mode, Panda can still provide CAN messages for vehicle identification
 
   # Check signature but don't fail if mismatch (for compatibility with 4.0 firmware)
   panda_signature = panda.get_signature()
@@ -176,7 +177,7 @@ def main() -> None:
           except Exception as e:
             cloudlog.warning(f"Failed to recover DFU Panda {serial}: {e}, continuing anyway")
             continue
-        time.sleep(1)  # Wait for Panda to exit DFU mode and reconnect
+        time.sleep(3)  # Wait longer for Panda to exit DFU mode and reconnect
 
       # Try to list pandas (USB + SPI)
       panda_serials = Panda.list()
