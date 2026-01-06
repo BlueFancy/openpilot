@@ -120,8 +120,30 @@ def main() -> None:
       dfu_serials = PandaDFU.list()
       if len(dfu_serials) > 0:
         for serial in dfu_serials:
-          cloudlog.info(f"Panda in DFU mode found, flashing recovery {serial}")
-          PandaDFU(serial).recover()
+          cloudlog.info(f"Panda in DFU mode found, attempting recovery {serial}")
+          try:
+            # Check if firmware file exists before attempting recovery
+            dfu = PandaDFU(serial)
+            bootstub_fn = os.path.join(FW_PATH, dfu.get_mcu_type().config.bootstub_fn)
+            if not os.path.exists(bootstub_fn):
+              cloudlog.warning(f"Bootstub firmware file not found: {bootstub_fn}, skipping DFU recovery. Panda may remain in DFU mode.")
+              # Try to reset the panda to exit DFU mode
+              try:
+                dfu.reset()
+                cloudlog.info("Attempted to reset Panda from DFU mode")
+                time.sleep(2)
+              except Exception as e:
+                cloudlog.warning(f"Failed to reset Panda from DFU mode: {e}")
+              continue
+            
+            dfu.recover()
+            cloudlog.info(f"Successfully recovered DFU Panda {serial}")
+          except FileNotFoundError as e:
+            cloudlog.warning(f"Firmware file not found for DFU recovery: {e}, skipping")
+            continue
+          except Exception as e:
+            cloudlog.warning(f"Failed to recover DFU Panda {serial}: {e}, continuing anyway")
+            continue
         time.sleep(1)
 
       # Try to list pandas (USB + SPI)
