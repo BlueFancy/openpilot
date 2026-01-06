@@ -106,12 +106,8 @@ def main() -> None:
       cloudlog.event("pandad.flash_and_connect", count=count)
       params.remove("PandaSignatures")
 
-      # TODO: remove this in the next AGNOS
-      # wait until USB is up before counting
       system_uptime = time.monotonic()
-      if system_uptime < 35.:
-        no_internal_panda_count = 0
-
+      
       # Check SPI device availability (for SPI-only devices)
       spi_available = os.path.exists("/dev/spidev0.0")
       if not spi_available and system_uptime < 10.:
@@ -133,8 +129,8 @@ def main() -> None:
       if len(panda_serials) == 0:
         cloudlog.warning(f"No pandas found (attempt {no_internal_panda_count + 1}, uptime: {system_uptime:.1f}s)")
         
-        # Only try hardware reset if system has been up for a while
-        if system_uptime >= 35. and HARDWARE.has_internal_panda():
+        # Try hardware reset if system has been up for a while and we have internal panda
+        if system_uptime >= 10. and HARDWARE.has_internal_panda():
           no_internal_panda_count += 1
           if no_internal_panda_count >= 3:
             cloudlog.info("No pandas found, putting internal panda into DFU")
@@ -150,11 +146,17 @@ def main() -> None:
               time.sleep(3)  # wait to come back up
             except Exception as e:
               cloudlog.warning(f"Failed to reset internal panda: {e}")
+        elif system_uptime < 10.:
+          # System just started, wait a bit longer before trying reset
+          time.sleep(2)
         else:
-          # System just started, wait a bit longer
+          # System is up but no internal panda expected, just wait
           time.sleep(2)
         
         continue
+      
+      # Reset counter on success
+      no_internal_panda_count = 0
 
       cloudlog.info(f"{len(panda_serials)} panda(s) found, connecting - {panda_serials}")
 
@@ -167,12 +169,9 @@ def main() -> None:
       internal_pandas = [panda for panda in pandas if panda.is_internal()]
       if HARDWARE.has_internal_panda() and len(internal_pandas) == 0:
         cloudlog.error("Internal panda is missing, trying again")
-        if system_uptime >= 35.:
+        if system_uptime >= 10.:
           no_internal_panda_count += 1
         continue
-      
-      # Reset counter on success
-      no_internal_panda_count = 0
 
       # sort pandas to have deterministic order
       # * the internal one is always first
