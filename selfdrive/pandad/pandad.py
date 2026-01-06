@@ -122,42 +122,51 @@ def main() -> None:
         for serial in dfu_serials:
           cloudlog.info(f"Panda in DFU mode found, attempting recovery {serial}")
           try:
-            # Check if firmware file exists before attempting recovery
+            cloudlog.info(f"Creating PandaDFU instance for {serial}")
             dfu = PandaDFU(serial)
-            mcu_type = dfu.get_mcu_type()
-            bootstub_fn = os.path.join(FW_PATH, mcu_type.config.bootstub_fn)
-            cloudlog.info(f"DFU Panda {serial}: MCU type={mcu_type.name}, bootstub file={bootstub_fn}")
+            cloudlog.info(f"PandaDFU instance created successfully for {serial}")
+            # For TICI devices (which use H7), always try H7 firmware first
+            # MCU type detection in DFU mode can be unreliable
+            h7_bootstub_fn = os.path.join(FW_PATH, "bootstub.panda_h7.bin")
+            f4_bootstub_fn = os.path.join(FW_PATH, "bootstub.panda.bin")
             
-            if not os.path.exists(bootstub_fn):
-              cloudlog.warning(f"Bootstub firmware file not found: {bootstub_fn}")
-              # Try alternative firmware file (in case MCU type detection is wrong)
-              alt_bootstub_fn = os.path.join(FW_PATH, "bootstub.panda_h7.bin" if mcu_type.name == "F4" else "bootstub.panda.bin")
-              if os.path.exists(alt_bootstub_fn):
-                cloudlog.warning(f"Using alternative firmware file: {alt_bootstub_fn}")
-                # Manually read and program the alternative firmware
-                with open(alt_bootstub_fn, "rb") as f:
+            # Try H7 firmware first (TICI devices use H7)
+            if os.path.exists(h7_bootstub_fn):
+              cloudlog.info(f"Using H7 firmware for DFU recovery: {h7_bootstub_fn}")
+              try:
+                with open(h7_bootstub_fn, "rb") as f:
                   code = f.read()
                 dfu.program_bootstub(code)
                 dfu.reset()
-                cloudlog.info(f"Successfully recovered DFU Panda {serial} with alternative firmware")
+                cloudlog.info(f"Successfully recovered DFU Panda {serial} with H7 firmware")
                 time.sleep(2)
                 continue
-              else:
-                cloudlog.warning(f"Alternative firmware file also not found: {alt_bootstub_fn}, skipping DFU recovery")
-                # Try to reset the panda to exit DFU mode
-                try:
-                  dfu.reset()
-                  cloudlog.info("Attempted to reset Panda from DFU mode")
-                  time.sleep(2)
-                except Exception as e:
-                  cloudlog.warning(f"Failed to reset Panda from DFU mode: {e}")
-                continue
+              except Exception as e:
+                cloudlog.warning(f"Failed to program H7 firmware: {e}, trying F4 firmware")
             
-            dfu.recover()
-            cloudlog.info(f"Successfully recovered DFU Panda {serial}")
-          except FileNotFoundError as e:
-            cloudlog.warning(f"Firmware file not found for DFU recovery: {e}, skipping")
-            continue
+            # Fallback to F4 firmware if H7 failed or doesn't exist
+            if os.path.exists(f4_bootstub_fn):
+              cloudlog.info(f"Using F4 firmware for DFU recovery: {f4_bootstub_fn}")
+              try:
+                with open(f4_bootstub_fn, "rb") as f:
+                  code = f.read()
+                dfu.program_bootstub(code)
+                dfu.reset()
+                cloudlog.info(f"Successfully recovered DFU Panda {serial} with F4 firmware")
+                time.sleep(2)
+                continue
+              except Exception as e:
+                cloudlog.warning(f"Failed to program F4 firmware: {e}")
+            
+            # If both firmware files don't exist or programming failed
+            cloudlog.warning(f"Neither H7 nor F4 firmware available or programming failed, skipping DFU recovery")
+            # Try to reset the panda to exit DFU mode
+            try:
+              dfu.reset()
+              cloudlog.info("Attempted to reset Panda from DFU mode")
+              time.sleep(2)
+            except Exception as e:
+              cloudlog.warning(f"Failed to reset Panda from DFU mode: {e}")
           except Exception as e:
             cloudlog.warning(f"Failed to recover DFU Panda {serial}: {e}, continuing anyway")
             continue
