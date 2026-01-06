@@ -116,6 +116,7 @@ class Panda:
   HW_TYPE_UNKNOWN = b'\x00'
   HW_TYPE_WHITE = b'\x01'
   HW_TYPE_BLACK = b'\x03'
+  HW_TYPE_DOS = b'\x06'  # dos Panda hardware type
   HW_TYPE_RED_PANDA = b'\x07'
   HW_TYPE_TRES = b'\x09'
   HW_TYPE_CUATRO = b'\x0a'
