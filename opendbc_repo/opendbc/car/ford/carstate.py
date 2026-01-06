@@ -38,6 +38,7 @@ class CarState(CarStateBase, MadsCarState):
     self.cluster_speed_hyst_gap = CV.KPH_TO_MS / 2.
     self.distance_button = 0
     self.lc_button = 0
+    self.steering_angle_offset_deg = 0.0  # Initialize steering angle offset for ALT_STEER_ANGLE vehicles
 
     # Save the HEV data available flag to a param
     self.params.put_bool("FordPrefHevDataAvailable", True if CP.flags & FordFlags.HEV_CLUSTER_DATA else False)
@@ -59,12 +60,10 @@ class CarState(CarStateBase, MadsCarState):
     ret = structs.CarState()
     ret_sp = structs.CarStateSP()
 
-    # 恢复原版逻辑：使用ParkAid_Data进行完整的传感器验证
+    # 使用4.0版本的逻辑：使用BrakeSnData_5进行传感器验证
     if self.CP.flags & FordFlags.ALT_STEER_ANGLE:
       self.vehicle_sensors_valid = (
-        int((cp.vl["ParkAid_Data"]["ExtSteeringAngleReq2"] + 1000) * 10) not in (32766, 32767)
-        and cp.vl["ParkAid_Data"]["EPASExtAngleStatReq"] == 0
-        and cp.vl["ParkAid_Data"]["ApaSys_D_Stat"] in (0, 1)
+        int((cp.vl["BrakeSnData_5"]["SteWhlRelInit_An_Sns"] + 1600) * 10) not in (32766, 32767)
       )
     else:
    	  # Occasionally on startup, the ABS module recalibrates the steering pinion offset, so we need to block engagement
@@ -82,7 +81,8 @@ class CarState(CarStateBase, MadsCarState):
     ret.standstill = cp.vl["DesiredTorqBrk"]["VehStop_D_Stat"] == 1
 
     # gas pedal
-    ret.gasPressed = cp.vl["EngVehicleSpThrottle"]["ApedPos_Pc_ActlArb"] / 100. > 1e-6
+    ret.gas = cp.vl["EngVehicleSpThrottle"]["ApedPos_Pc_ActlArb"] / 100.
+    ret.gasPressed = ret.gas > 1e-6
 
     # brake pedal
     ret.brake = cp.vl["BrakeSnData_4"]["BrkTot_Tq_Actl"] / 32756.  # torque in Nm
@@ -90,11 +90,11 @@ class CarState(CarStateBase, MadsCarState):
     ret.parkingBrake = cp.vl["DesiredTorqBrk"]["PrkBrkStatus"] in (1, 2)
 
     # steering wheel
-    # 恢复原版逻辑：使用ParkAid_Data进行转向角度计算
+    # 使用4.0版本的逻辑：使用BrakeSnData_5进行转向角度计算
     if self.CP.flags & FordFlags.ALT_STEER_ANGLE:
       steering_angle_init = cp.vl["SteeringPinion_Data_Alt"]["StePinRelInit_An_Sns"]
       if self.vehicle_sensors_valid:
-        steering_angle_est = cp.vl["ParkAid_Data"]["ExtSteeringAngleReq2"]
+        steering_angle_est = cp.vl["BrakeSnData_5"]["SteWhlRelInit_An_Sns"]
         self.steering_angle_offset_deg = steering_angle_est - steering_angle_init
       ret.steeringAngleDeg = steering_angle_init + self.steering_angle_offset_deg
     else:
@@ -136,10 +136,13 @@ class CarState(CarStateBase, MadsCarState):
 
       ret.gearShifter = self.parse_gear_shifter(gear)
     elif self.CP.transmissionType == TransmissionType.manual:
+      ret.clutchPressed = cp.vl["Engine_Clutch_Data"]["CluPdlPos_Pc_Meas"] > 0
       if bool(cp.vl["BCM_Lamp_Stat_FD1"]["RvrseLghtOn_B_Stat"]):
         ret.gearShifter = GearShifter.reverse
       else:
         ret.gearShifter = GearShifter.drive
+
+    ret.engineRpm = cp.vl["EngVehicleSpThrottle"]["EngAout_N_Actl"]
 
     # safety
     ret.stockFcw = bool(cp_cam.vl["ACCDATA_3"]["FcwVisblWarn_B_Rq"])
@@ -322,8 +325,6 @@ class CarState(CarStateBase, MadsCarState):
       # sig_address, frequency
       ("VehicleOperatingModes", 100),
       ("BrakeSysFeatures", 50),
-      ("BrakeSysFeatures_2", 50),
-      ("BCM_Lamp_Stat_FD1", 1),  # Added for brake light status - matches actual vehicle frequency
       ("Yaw_Data_FD1", 100),
       ("DesiredTorqBrk", 50),
       ("EngVehicleSpThrottle", 100),
@@ -350,11 +351,11 @@ class CarState(CarStateBase, MadsCarState):
       print("Battery_Traction_4_FD1 signal exists (get_can_parser)")
       pt_messages.append(("Battery_Traction_4_FD1", 10))
 
-    # 恢复原版逻辑：使用ParkAid_Data进行传感器验证和转向角度计算
+    # 使用4.0版本的逻辑：使用BrakeSnData_5进行传感器验证和转向角度计算
     if CP.flags & FordFlags.ALT_STEER_ANGLE:
       pt_messages += [
         ("SteeringPinion_Data_Alt", 100),
-        ("ParkAid_Data", 50),  # 恢复使用ParkAid_Data
+        ("BrakeSnData_5", 50),  # 使用BrakeSnData_5而不是ParkAid_Data
         ("TransGearData", 10),
       ]
     else:
@@ -383,6 +384,7 @@ class CarState(CarStateBase, MadsCarState):
     elif CP.transmissionType == TransmissionType.manual:
       pt_messages += [
         ("Engine_Clutch_Data", 33),
+        ("BCM_Lamp_Stat_FD1", 1),
       ]
 
     if CP.enableBsm and not (CP.flags & FordFlags.CANFD):
@@ -416,4 +418,3 @@ class CarState(CarStateBase, MadsCarState):
       Bus.cam: CANParser(DBC[CP.carFingerprint][Bus.pt], cam_messages, CanBus(CP).camera),
     }
 
- 
