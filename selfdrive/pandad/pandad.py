@@ -131,7 +131,9 @@ def main() -> None:
 
       panda_serials = Panda.list()
       if len(panda_serials) == 0:
+        cloudlog.warning(f"No pandas found (attempt {no_internal_panda_count + 1})")
         no_internal_panda_count += 1
+        time.sleep(1)  # Wait a bit before retrying
         continue
 
       cloudlog.info(f"{len(panda_serials)} panda(s) found, connecting - {panda_serials}")
@@ -157,7 +159,20 @@ def main() -> None:
       panda_serials = [p.get_usb_serial() for p in pandas]
 
       # log panda fw versions
-      params.put("PandaSignatures", b','.join(p.get_signature() for p in pandas))
+      try:
+        signatures = []
+        for p in pandas:
+          try:
+            sig = p.get_signature()
+            if sig:
+              signatures.append(sig)
+          except Exception:
+            # If panda is in bootstub or signature unavailable, skip it
+            pass
+        if signatures:
+          params.put("PandaSignatures", b','.join(signatures))
+      except Exception:
+        cloudlog.warning("Failed to log panda signatures")
 
       for panda in pandas:
         # skip health check if the detected panda is not supported
