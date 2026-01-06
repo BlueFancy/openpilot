@@ -108,20 +108,11 @@ def main() -> None:
 
       # TODO: remove this in the next AGNOS
       # wait until USB is up before counting
-      if time.monotonic() < 35.:
+      system_uptime = time.monotonic()
+      if system_uptime < 35.:
         no_internal_panda_count = 0
 
-      # Handle missing internal panda
-      if no_internal_panda_count > 0:
-        if no_internal_panda_count == 3:
-          cloudlog.info("No pandas found, putting internal panda into DFU")
-          HARDWARE.recover_internal_panda()
-        else:
-          cloudlog.info("No pandas found, resetting internal panda")
-          HARDWARE.reset_internal_panda()
-        time.sleep(3)  # wait to come back up
-
-      # Flash all Pandas in DFU mode
+      # Flash all Pandas in DFU mode first
       dfu_serials = PandaDFU.list()
       if len(dfu_serials) > 0:
         for serial in dfu_serials:
@@ -131,9 +122,29 @@ def main() -> None:
 
       panda_serials = Panda.list()
       if len(panda_serials) == 0:
-        cloudlog.warning(f"No pandas found (attempt {no_internal_panda_count + 1})")
-        no_internal_panda_count += 1
-        time.sleep(1)  # Wait a bit before retrying
+        cloudlog.warning(f"No pandas found (attempt {no_internal_panda_count + 1}, uptime: {system_uptime:.1f}s)")
+        
+        # Only try hardware reset if system has been up for a while
+        if system_uptime >= 35. and HARDWARE.has_internal_panda():
+          no_internal_panda_count += 1
+          if no_internal_panda_count >= 3:
+            cloudlog.info("No pandas found, putting internal panda into DFU")
+            try:
+              HARDWARE.recover_internal_panda()
+              time.sleep(3)  # wait to come back up
+            except Exception as e:
+              cloudlog.warning(f"Failed to recover internal panda: {e}")
+          elif no_internal_panda_count > 0:
+            cloudlog.info("No pandas found, resetting internal panda")
+            try:
+              HARDWARE.reset_internal_panda()
+              time.sleep(3)  # wait to come back up
+            except Exception as e:
+              cloudlog.warning(f"Failed to reset internal panda: {e}")
+        else:
+          # System just started, wait a bit longer
+          time.sleep(2)
+        
         continue
 
       cloudlog.info(f"{len(panda_serials)} panda(s) found, connecting - {panda_serials}")
@@ -147,8 +158,11 @@ def main() -> None:
       internal_pandas = [panda for panda in pandas if panda.is_internal()]
       if HARDWARE.has_internal_panda() and len(internal_pandas) == 0:
         cloudlog.error("Internal panda is missing, trying again")
-        no_internal_panda_count += 1
+        if system_uptime >= 35.:
+          no_internal_panda_count += 1
         continue
+      
+      # Reset counter on success
       no_internal_panda_count = 0
 
       # sort pandas to have deterministic order
