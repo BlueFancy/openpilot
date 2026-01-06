@@ -112,6 +112,14 @@ def main() -> None:
       if system_uptime < 35.:
         no_internal_panda_count = 0
 
+      # Check SPI device availability (for SPI-only devices)
+      spi_available = os.path.exists("/dev/spidev0.0")
+      if not spi_available and system_uptime < 10.:
+        # SPI device might not be ready yet, wait a bit
+        cloudlog.debug("SPI device not ready yet, waiting...")
+        time.sleep(2)
+        continue
+
       # Flash all Pandas in DFU mode first
       dfu_serials = PandaDFU.list()
       if len(dfu_serials) > 0:
@@ -120,6 +128,7 @@ def main() -> None:
           PandaDFU(serial).recover()
         time.sleep(1)
 
+      # Try to list pandas (USB + SPI)
       panda_serials = Panda.list()
       if len(panda_serials) == 0:
         cloudlog.warning(f"No pandas found (attempt {no_internal_panda_count + 1}, uptime: {system_uptime:.1f}s)")
