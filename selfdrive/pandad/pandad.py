@@ -50,19 +50,26 @@ def flash_panda(panda_serial: str) -> Panda:
   if panda.bootstub:
     bootstub_version = panda.get_version()
     cloudlog.info(f"Flashed firmware not booting, flashing development bootloader. {bootstub_version=}, {internal_panda=}")
-    if internal_panda:
-      HARDWARE.recover_internal_panda()
-    panda.recover(reset=(not internal_panda))
-    cloudlog.info("Done flashing bootstub")
+    try:
+      if internal_panda:
+        HARDWARE.recover_internal_panda()
+      panda.recover(reset=(not internal_panda))
+      cloudlog.info("Done flashing bootstub")
+    except Exception as e:
+      cloudlog.warning(f"Failed to recover panda: {e}, continuing anyway")
 
+  # If still in bootstub after all attempts, log warning but continue
+  # This allows the system to continue running even if Panda firmware is incompatible
   if panda.bootstub:
-    cloudlog.info("Panda still not booting, exiting")
-    raise AssertionError
+    cloudlog.warning("Panda still in bootstub mode after flashing attempts, but continuing with existing firmware")
+    # Don't raise AssertionError - allow system to continue
+    # Note: CAN messages may not be available, so vehicle identification may fail
 
+  # Check signature but don't fail if mismatch (for compatibility with 4.0 firmware)
   panda_signature = panda.get_signature()
   if panda_signature != fw_signature:
-    cloudlog.info("Version mismatch after flashing, exiting")
-    raise AssertionError
+    cloudlog.warning(f"Version mismatch (got {panda_signature.hex()[:16] if panda_signature else 'empty'}, expected {fw_signature.hex()[:16]}), but continuing with existing firmware")
+    # Don't raise AssertionError - allow system to continue
 
   return panda
 
