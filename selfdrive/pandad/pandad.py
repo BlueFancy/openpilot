@@ -50,27 +50,19 @@ def flash_panda(panda_serial: str) -> Panda:
   if panda.bootstub:
     bootstub_version = panda.get_version()
     cloudlog.info(f"Flashed firmware not booting, flashing development bootloader. {bootstub_version=}, {internal_panda=}")
-    try:
-      if internal_panda:
-        HARDWARE.recover_internal_panda()
-      panda.recover(reset=(not internal_panda))
-      cloudlog.info("Done flashing bootstub")
-    except Exception as e:
-      cloudlog.warning(f"Failed to recover panda: {e}, continuing anyway")
+    if internal_panda:
+      HARDWARE.recover_internal_panda()
+    panda.recover(reset=(not internal_panda))
+    cloudlog.info("Done flashing bootstub")
 
-  # If still in bootstub after all attempts, log warning but continue
-  # This allows the system to continue running even if Panda firmware is incompatible
   if panda.bootstub:
-    cloudlog.warning("Panda still in bootstub mode after flashing attempts, but continuing anyway")
-    cloudlog.warning("Panda in bootstub mode can still provide CAN messages, allowing system to continue")
-    # Don't raise AssertionError - allow system to continue
-    # Note: Even in bootstub mode, Panda can still provide CAN messages for vehicle identification
+    cloudlog.info("Panda still not booting, exiting")
+    raise AssertionError
 
-  # Check signature but don't fail if mismatch (for compatibility with 4.0 firmware)
   panda_signature = panda.get_signature()
   if panda_signature != fw_signature:
-    cloudlog.warning(f"Version mismatch (got {panda_signature.hex()[:16] if panda_signature else 'empty'}, expected {fw_signature.hex()[:16]}), but continuing with existing firmware")
-    # Don't raise AssertionError - allow system to continue
+    cloudlog.info("Version mismatch after flashing, exiting")
+    raise AssertionError
 
   return panda
 
@@ -107,111 +99,28 @@ def main() -> None:
       cloudlog.event("pandad.flash_and_connect", count=count)
       params.remove("PandaSignatures")
 
-      system_uptime = time.monotonic()
-      
-      # Check SPI device availability (for SPI-only devices)
-      spi_available = os.path.exists("/dev/spidev0.0")
-      if not spi_available and system_uptime < 10.:
-        # SPI device might not be ready yet, wait a bit
-        cloudlog.debug("SPI device not ready yet, waiting...")
-        time.sleep(2)
-        continue
+      # Handle missing internal panda
+      if no_internal_panda_count > 0:
+        if no_internal_panda_count == 3:
+          cloudlog.info("No pandas found, putting internal panda into DFU")
+          HARDWARE.recover_internal_panda()
+        else:
+          cloudlog.info("No pandas found, resetting internal panda")
+          HARDWARE.reset_internal_panda()
+        time.sleep(3)  # wait to come back up
 
-      # Flash all Pandas in DFU mode first
+      # Flash all Pandas in DFU mode
       dfu_serials = PandaDFU.list()
       if len(dfu_serials) > 0:
         for serial in dfu_serials:
-          cloudlog.info(f"Panda in DFU mode found, attempting recovery {serial}")
-          try:
-            dfu = PandaDFU(serial)
-            # For TICI devices (which use H7), try H7 firmware first
-            # MCU type detection in DFU mode can be unreliable
-            h7_bootstub_fn = os.path.join(FW_PATH, "bootstub.panda_h7.bin")
-            f4_bootstub_fn = os.path.join(FW_PATH, "bootstub.panda.bin")
-            
-            recovery_successful = False
-            # Try H7 firmware first (TICI devices use H7)
-            if os.path.exists(h7_bootstub_fn):
-              try:
-                cloudlog.info(f"Using H7 firmware for DFU recovery: {h7_bootstub_fn}")
-                with open(h7_bootstub_fn, "rb") as f:
-                  code = f.read()
-                dfu.program_bootstub(code)
-                dfu.reset()
-                cloudlog.info(f"Successfully recovered DFU Panda {serial} with H7 bootstub")
-                recovery_successful = True
-              except Exception as e:
-                cloudlog.warning(f"Failed to program H7 firmware: {e}, trying F4 firmware")
-            
-            # Fallback to F4 firmware if H7 failed or doesn't exist
-            if not recovery_successful and os.path.exists(f4_bootstub_fn):
-              try:
-                # Reconnect to DFU if H7 recovery failed
-                if recovery_successful is False:
-                  try:
-                    dfu.close()
-                  except Exception:
-                    pass
-                  dfu = PandaDFU(serial)
-                
-                cloudlog.info(f"Using F4 firmware for DFU recovery: {f4_bootstub_fn}")
-                with open(f4_bootstub_fn, "rb") as f:
-                  code = f.read()
-                dfu.program_bootstub(code)
-                dfu.reset()
-                cloudlog.info(f"Successfully recovered DFU Panda {serial} with F4 bootstub")
-                recovery_successful = True
-              except Exception as e:
-                cloudlog.warning(f"Failed to program F4 firmware: {e}")
-            
-            if not recovery_successful:
-              cloudlog.warning(f"Neither H7 nor F4 firmware available or programming failed for DFU Panda {serial}")
-              # Try to reset the panda to exit DFU mode
-              try:
-                dfu.reset()
-                cloudlog.info("Attempted to reset Panda from DFU mode")
-              except Exception as e:
-                cloudlog.warning(f"Failed to reset Panda from DFU mode: {e}")
-            
-            dfu.close()
-          except Exception as e:
-            cloudlog.warning(f"Failed to recover DFU Panda {serial}: {e}, continuing anyway")
-            continue
-        time.sleep(3)  # Wait longer for Panda to exit DFU mode and reconnect
+          cloudlog.info(f"Panda in DFU mode found, flashing recovery {serial}")
+          PandaDFU(serial).recover()
+        time.sleep(1)
 
-      # Try to list pandas (USB + SPI)
       panda_serials = Panda.list()
       if len(panda_serials) == 0:
-        cloudlog.warning(f"No pandas found (attempt {no_internal_panda_count + 1}, uptime: {system_uptime:.1f}s)")
-        
-        # Try hardware reset if system has been up for a while and we have internal panda
-        if system_uptime >= 10. and HARDWARE.has_internal_panda():
-          no_internal_panda_count += 1
-          if no_internal_panda_count >= 3:
-            cloudlog.info("No pandas found, putting internal panda into DFU")
-            try:
-              HARDWARE.recover_internal_panda()
-              time.sleep(3)  # wait to come back up
-            except Exception as e:
-              cloudlog.warning(f"Failed to recover internal panda: {e}")
-          elif no_internal_panda_count > 0:
-            cloudlog.info("No pandas found, resetting internal panda")
-            try:
-              HARDWARE.reset_internal_panda()
-              time.sleep(3)  # wait to come back up
-            except Exception as e:
-              cloudlog.warning(f"Failed to reset internal panda: {e}")
-        elif system_uptime < 10.:
-          # System just started, wait a bit longer before trying reset
-          time.sleep(2)
-        else:
-          # System is up but no internal panda expected, just wait
-          time.sleep(2)
-        
+        no_internal_panda_count += 1
         continue
-      
-      # Reset counter on success
-      no_internal_panda_count = 0
 
       cloudlog.info(f"{len(panda_serials)} panda(s) found, connecting - {panda_serials}")
 
@@ -224,9 +133,9 @@ def main() -> None:
       internal_pandas = [panda for panda in pandas if panda.is_internal()]
       if HARDWARE.has_internal_panda() and len(internal_pandas) == 0:
         cloudlog.error("Internal panda is missing, trying again")
-        if system_uptime >= 10.:
-          no_internal_panda_count += 1
+        no_internal_panda_count += 1
         continue
+      no_internal_panda_count = 0
 
       # sort pandas to have deterministic order
       # * the internal one is always first
@@ -236,20 +145,7 @@ def main() -> None:
       panda_serials = [p.get_usb_serial() for p in pandas]
 
       # log panda fw versions
-      try:
-        signatures = []
-        for p in pandas:
-          try:
-            sig = p.get_signature()
-            if sig:
-              signatures.append(sig)
-          except Exception:
-            # If panda is in bootstub or signature unavailable, skip it
-            pass
-        if signatures:
-          params.put("PandaSignatures", b','.join(signatures))
-      except Exception:
-        cloudlog.warning("Failed to log panda signatures")
+      params.put("PandaSignatures", b','.join(p.get_signature() for p in pandas))
 
       for panda in pandas:
         # skip health check if the detected panda is not supported
