@@ -6,7 +6,7 @@ from opendbc.car.ford.carcontroller import CarController
 from opendbc.car.ford.carstate import CarState
 from opendbc.car.ford.fordcan import CanBus
 from opendbc.car.ford.radar_interface import RadarInterface
-from opendbc.car.ford.values import CarControllerParams, DBC, Ecu, FordFlags, RADAR, FordSafetyFlags
+from opendbc.car.ford.values import CAR, CarControllerParams, DBC, Ecu, FordFlags, RADAR, FordSafetyFlags
 from opendbc.car.interfaces import CarInterfaceBase
 from opendbc.sunnypilot.car.ford.interfaces_ext import apply_ford_ext_params, apply_ford_ext_params_sp
 
@@ -84,8 +84,10 @@ class CarInterface(CarInterfaceBase):
             ret.dashcamOnly = True
 
     # Auto Transmission: 0x732 ECU or Gear_Shift_by_Wire_FD1
+    # Edge Mk2 is automatic but its fingerprint has neither the shift-by-wire
+    # ECU nor the 0x5A message used by the generic detection below.
     found_ecus = [fw.ecu for fw in car_fw]
-    if Ecu.shiftByWire in found_ecus or 0x5A in fingerprint[CAN.main] or docs:
+    if candidate == CAR.FORD_EDGE_MK2 or Ecu.shiftByWire in found_ecus or 0x5A in fingerprint[CAN.main] or docs:
       ret.transmissionType = TransmissionType.automatic
     else:
       ret.transmissionType = TransmissionType.manual
