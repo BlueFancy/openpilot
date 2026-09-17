@@ -1,9 +1,11 @@
+import math
+
 from opendbc.can import CANDefine, CANParser
 from opendbc.car import Bus, create_button_events, structs
 from opendbc.car.common.conversions import Conversions as CV
 from openpilot.common.params import Params
 from opendbc.car.ford.fordcan import CanBus
-from opendbc.car.ford.values import DBC, CarControllerParams, FordFlags
+from opendbc.car.ford.values import CAR, DBC, CarControllerParams, FordFlags
 from opendbc.car.interfaces import CarStateBase
 from opendbc.sunnypilot.car.ford.mads import MadsCarState
 from opendbc.sunnypilot.car.ford.carstate_ext import CarStateExt
@@ -11,6 +13,35 @@ from opendbc.sunnypilot.car.ford.carstate_ext import CarStateExt
 ButtonType = structs.CarState.ButtonEvent.Type
 GearShifter = structs.CarState.GearShifter
 TransmissionType = structs.CarParams.TransmissionType
+
+# Alternate steering-angle sensor handling for platforms without a PSCM
+# steering-pinion message (e.g. Ford Edge Mk2). The DBC defines raw
+# 0xFFFE/0xFFFF as NoDataExists/Faulty, which decode to ~3353.4/3353.5 deg.
+ALT_STEERING_ANGLE_FAULT_DEG = 3353.4
+ALT_STEERING_FAULT_GRACE_FRAMES = 3
+
+
+def is_valid_alt_steering_angle(value: float) -> bool:
+  """Return whether a decoded alternate pinion-angle value is usable."""
+  return math.isfinite(float(value)) and float(value) < ALT_STEERING_ANGLE_FAULT_DEG
+
+
+def alt_steering_sensor_status(pinion_valid: bool, park_aid_valid: bool,
+                               primary_fault_frames: int,
+                               grace_frames: int = ALT_STEERING_FAULT_GRACE_FRAMES) -> tuple[bool, bool]:
+  """Return ``(control_valid, use_park_aid_angle)`` for alternate steering.
+
+  The PSCM can publish one or two 0xFFFE/0xFFFF angle frames while its
+  ParkAid angle remains valid.  Treat that as a bounded transient so a single
+  20 Hz sentinel cannot drop lateral control, but never allow ParkAid to mask
+  a sustained primary-angle fault.
+  """
+  if not park_aid_valid:
+    return False, False
+  if pinion_valid:
+    return True, False
+  within_grace = 0 < int(primary_fault_frames) <= max(0, int(grace_frames))
+  return within_grace, within_grace
 
 
 class CarState(CarStateBase, MadsCarState, CarStateExt):
@@ -35,6 +66,9 @@ class CarState(CarStateBase, MadsCarState, CarStateExt):
     self.lc_button = 0
     # BluePilot: fix uninitialized attribute (used by ALT_STEER_ANGLE steering angle calc)
     self.steering_angle_offset_deg = 0.0
+    self.last_valid_steering_angle_deg = 0.0
+    self.alt_steering_fault_frames = 0
+    self.vehicle_sensors_valid = False
 
     # BluePilot: Save HEV data available flags to params for UI
     self.params.put_bool("FordPrefHevDataAvailable", True if CP.flags & FordFlags.HEV_CLUSTER_DATA else False)
@@ -48,14 +82,31 @@ class CarState(CarStateBase, MadsCarState, CarStateExt):
     ret_sp = structs.CarStateSP()
 
     if self.CP.flags & FordFlags.ALT_STEER_ANGLE:
-      self.vehicle_sensors_valid = (
-        int((cp.vl["ParkAid_Data"]["ExtSteeringAngleReq2"] + 1000) * 10) not in (32766, 32767)
+      steering_angle_init = cp.vl["SteeringPinion_Data_Alt"]["StePinRelInit_An_Sns"]
+      steering_angle_est = cp.vl["ParkAid_Data"]["ExtSteeringAngleReq2"]
+      pinion_angle_valid = is_valid_alt_steering_angle(steering_angle_init)
+      park_aid_angle_valid = (
+        int((steering_angle_est + 1000) * 10) not in (32766, 32767)
         and cp.vl["ParkAid_Data"]["EPASExtAngleStatReq"] == 0
         and cp.vl["ParkAid_Data"]["ApaSys_D_Stat"] in (0, 1)
       )
+      if pinion_angle_valid:
+        self.alt_steering_fault_frames = 0
+      elif park_aid_angle_valid:
+        self.alt_steering_fault_frames += 1
+      else:
+        self.alt_steering_fault_frames = 0
+      # Both signals must be valid before recalibrating the offset.  A short
+      # primary-angle sentinel is tolerated only with a finite ParkAid angle;
+      # sustained faults still invalidate engagement.
+      self.vehicle_sensors_valid, use_park_aid_angle = alt_steering_sensor_status(
+        pinion_angle_valid, park_aid_angle_valid, self.alt_steering_fault_frames,
+        ALT_STEERING_FAULT_GRACE_FRAMES,
+      )
+      ret.vehicleSensorsInvalid = not self.vehicle_sensors_valid
     else:
-   	  # Occasionally on startup, the ABS module recalibrates the steering pinion offset, so we need to block engagement
-      # The vehicle usually recovers out of this state within a minute of normal driving
+      # Occasionally on startup, the ABS module recalibrates the steering pinion offset, so we need to block engagement.
+      # The vehicle usually recovers out of this state within a minute of normal driving.
       ret.vehicleSensorsInvalid = cp.vl["SteeringPinion_Data"]["StePinCompAnEst_D_Qf"] != 3
 
     # car speed
@@ -77,11 +128,16 @@ class CarState(CarStateBase, MadsCarState, CarStateExt):
 
     # steering wheel
     if self.CP.flags & FordFlags.ALT_STEER_ANGLE:
-      steering_angle_init = cp.vl["SteeringPinion_Data_Alt"]["StePinRelInit_An_Sns"]
-      if self.vehicle_sensors_valid:
-        steering_angle_est = cp.vl["ParkAid_Data"]["ExtSteeringAngleReq2"]
+      if pinion_angle_valid and park_aid_angle_valid:
         self.steering_angle_offset_deg = steering_angle_est - steering_angle_init
-      ret.steeringAngleDeg = steering_angle_init + self.steering_angle_offset_deg
+        ret.steeringAngleDeg = steering_angle_init + self.steering_angle_offset_deg
+        self.last_valid_steering_angle_deg = ret.steeringAngleDeg
+      elif use_park_aid_angle:
+        # Keep the telemetry finite during the bounded primary-angle grace
+        # period.  The ParkAid value is not accepted indefinitely.
+        ret.steeringAngleDeg = steering_angle_est
+      else:
+        ret.steeringAngleDeg = self.last_valid_steering_angle_deg
     else:
       ret.steeringAngleDeg = cp.vl["SteeringPinion_Data"]["StePinComp_An_Est"]
     ret.steeringTorque = cp.vl["EPAS_INFO"]["SteeringColumnTorque"]
@@ -227,7 +283,9 @@ class CarState(CarStateBase, MadsCarState, CarStateExt):
         ("INSTRUMENT_PANEL", 1),
       ]
 
-    if CP.transmissionType == TransmissionType.automatic:
+    # Edge Mk2 is automatic but does not publish the generic FD1
+    # shift-by-wire message. Requiring it makes CANParser permanently invalid.
+    if CP.transmissionType == TransmissionType.automatic and CP.carFingerprint != CAR.FORD_EDGE_MK2:
       pt_messages += [
         ("Gear_Shift_by_Wire_FD1", 10),
       ]
