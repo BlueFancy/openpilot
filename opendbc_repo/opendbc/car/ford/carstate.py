@@ -389,27 +389,3 @@ class CarState(CarStateBase, MadsCarState):
         ("Side_Detect_R_Stat", 5),
       ]
 
-    cam_messages = [
-      # sig_address, frequency
-      ("ACCDATA", 50),
-      ("ACCDATA_2", 50),
-      ("ACCDATA_3", 5),
-      ("IPMA_Data", 1),
-    ]
-
-    if CP.flags & FordFlags.CANFD:
-      cam_messages += [
-        ("Traffic_RecognitnData", 1),
-        ("IPMA_Data2", 1),
-      ]
-
-    if CP.enableBsm and CP.flags & FordFlags.CANFD:
-      cam_messages += [
-        ("Side_Detect_L_Stat", 5),
-        ("Side_Detect_R_Stat", 5),
-      ]
-
-    return {
-      Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], pt_messages, CanBus(CP).main),
-      Bus.cam: CANParser(DBC[CP.carFingerprint][Bus.pt], cam_messages, CanBus(CP).camera),
-    }
